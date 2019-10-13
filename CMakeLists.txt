@@ -19,7 +19,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 find_package(OpenGL REQUIRED)
 find_package(SDL2 REQUIRED)
 
-set (LIBS GL ${SDL2_LIBRARIES})
+set (LIBS GL dl ${SDL2_LIBRARIES})
 set (INCS ${SRC_DIR} ${INC_DIR} ${SDL2_INCLUDE_DIRS})
 
 ### Configuration File Settings
