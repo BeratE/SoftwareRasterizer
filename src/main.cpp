@@ -1,6 +1,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <vector>
+#include <glm/vec4.hpp>
 #include "SDL2/SDL.h"
 #include "config.h"
 
@@ -35,7 +36,7 @@ void init_window()
     _window = SDL_CreateWindow(
         PROJECT_NAME,
         SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-	800, 600,
+	1024, 1024,
 	SDL_WINDOW_SHOWN);
 
     if (_window == NULL)
@@ -60,7 +61,6 @@ void init_window()
 int main ()
 {
     init_window();
-
     SDL_Event event;
     bool quit = false;
     // Main loop
@@ -92,7 +92,7 @@ int main ()
             pixels[ offset + 1 ] = rand() % 256;        // g
             pixels[ offset + 2 ] = rand() % 256;        // r
             pixels[ offset + 3 ] = SDL_ALPHA_OPAQUE;    // a
-        }
+	}
 
 	// Blit texture content to the screen
 	SDL_UpdateTexture(_texture, NULL, &pixels[0], _texWidth * 4);
