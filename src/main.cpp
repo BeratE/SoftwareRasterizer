@@ -4,6 +4,7 @@
 #include <glm/vec4.hpp>
 #include "SDL2/SDL.h"
 #include "config.h"
+#include "pixelbuffer.h"
 
 SDL_Window *_window = NULL;
 SDL_Renderer *_renderer = NULL;
@@ -17,12 +18,6 @@ static void sdl_die(const char * message)
 {
     fprintf(stderr, "%s: %s.\n", message, SDL_GetError());
     exit(2);
-}
-
-void resize_window()
-{
-    int w, h;
-    SDL_GetWindowSize(_window, &w, &h);
 }
 
 void init_window()
@@ -80,30 +75,22 @@ int main ()
 	    }
 	}
 
-	std::vector<uint8_t> pixels(_texWidth * _texHeight * 4, 0);
-	
-	for( unsigned int i = 0; i < 1000; i++ )
-        {
-            const unsigned int x = rand() % _texWidth;
-            const unsigned int y = rand() % _texHeight;
+	ColorBuffer *buffer = CreateColorBuffer(_texWidth, _texHeight);
 
-            const unsigned int offset = (_texWidth * 4 * y ) + x * 4;
-            pixels[ offset + 0 ] = rand() % 256;        // b
-            pixels[ offset + 1 ] = rand() % 256;        // g
-            pixels[ offset + 2 ] = rand() % 256;        // r
-            pixels[ offset + 3 ] = SDL_ALPHA_OPAQUE;    // a
-	}
+	WriteLine(buffer, 0, 0, 100, 50, 255);
 
 	// Blit texture content to the screen
-	SDL_UpdateTexture(_texture, NULL, &pixels[0], _texWidth * 4);
+	SDL_UpdateTexture(_texture, NULL, &(buffer->buffer[0]), _texWidth * 4);
 	SDL_RenderCopy(_renderer, _texture, NULL, NULL );
         SDL_RenderPresent(_renderer);
 
+	delete buffer;
+	
 	// Performance measurements
         const Uint64 end = SDL_GetPerformanceCounter();
         const static Uint64 freq = SDL_GetPerformanceFrequency();
         const double seconds = ( end - start ) / static_cast< double >( freq );
-        printf("Frame time: %f ms\n", seconds * 1000.0);
+        //printf("Frame time: %f ms\n", seconds * 1000.0);
     }
 
     // Shutdown
