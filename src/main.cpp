@@ -9,8 +9,8 @@
 SDL_Window *_window = NULL;
 SDL_Renderer *_renderer = NULL;
 
-unsigned int _texWidth = 1024;
-unsigned int _texHeight = 1024;
+unsigned int _texWidth = 600;
+unsigned int _texHeight = 600;
 SDL_Texture* _texture = NULL;
 
 static void sdl_die(const char * message)
@@ -56,20 +56,24 @@ void init_window()
 int main ()
 {
     init_window();
+    
     SDL_Event event;
-    bool quit = false;
+    uint64_t frame = 0;
+    double runTime = 0;
+    bool isRunning = true;
+    
     // Main loop
-    while (!quit) {
+    while (isRunning) {
 	const Uint64 start = SDL_GetPerformanceCounter();
 	
 	while (SDL_PollEvent(&event)) {
 	    if (event.type == SDL_QUIT) {
-		quit = true;
+		isRunning = false;
 		break;
 	    }
 	    if (event.type == SDL_KEYDOWN) {
 		if (event.key.keysym.scancode == SDL_SCANCODE_ESCAPE) {
-		    quit = true;
+		    isRunning = false;
 		    break;
 		}
 	    }
@@ -77,8 +81,38 @@ int main ()
 
 	ColorBuffer *buffer = CreateColorBuffer(_texWidth, _texHeight);
 
-	WriteLine(buffer, 0, 0, 100, 50, 255);
+	uint32_t cx = 300, cy = 300;
+	WriteLine(buffer, cx, cy, 600, 600, 255);
+	WriteLine(buffer, cx, cy, 600, 550, 225);
+	WriteLine(buffer, cx, cy, 600, 500, 195);
+	WriteLine(buffer, cx, cy, 600, 450, 175);
+	WriteLine(buffer, cx, cy, 600, 400, 155);
+	WriteLine(buffer, cx, cy, 600, 350, 135);
+	WriteLine(buffer, cx, cy, 600, 300, 105);
 
+	WriteLine(buffer, cx, cy, 550, 600, 255);
+	WriteLine(buffer, cx, cy, 500, 600, 225);
+	WriteLine(buffer, cx, cy, 450, 600, 195);
+	WriteLine(buffer, cx, cy, 400, 600, 175);
+	WriteLine(buffer, cx, cy, 350, 600, 155);
+	WriteLine(buffer, cx, cy, 300, 600, 135);
+
+	WriteLine(buffer, cx, cy, 0, 0, 255);
+	WriteLine(buffer, cx, cy, 0, 50, 225);
+	WriteLine(buffer, cx, cy, 0, 100, 195);
+	WriteLine(buffer, cx, cy, 0, 150, 175);
+	WriteLine(buffer, cx, cy, 0, 200, 155);
+	WriteLine(buffer, cx, cy, 0, 250, 135);
+	WriteLine(buffer, cx, cy, 0, 300, 105);
+
+	WriteLine(buffer, cx, cy, 50, 0, 225);
+	WriteLine(buffer, cx, cy, 100, 0, 195);
+	WriteLine(buffer, cx, cy, 150, 0, 175);
+	WriteLine(buffer, cx, cy, 200, 0, 155);
+	WriteLine(buffer, cx, cy, 250, 0, 135);
+	//WriteLine(buffer, cx, cy, 300, 0, 105);
+
+	
 	// Blit texture content to the screen
 	SDL_UpdateTexture(_texture, NULL, &(buffer->buffer[0]), _texWidth * 4);
 	SDL_RenderCopy(_renderer, _texture, NULL, NULL );
@@ -90,9 +124,13 @@ int main ()
         const Uint64 end = SDL_GetPerformanceCounter();
         const static Uint64 freq = SDL_GetPerformanceFrequency();
         const double seconds = ( end - start ) / static_cast< double >( freq );
-        //printf("Frame time: %f ms\n", seconds * 1000.0);
+	frame++;
+	runTime += seconds;
     }
 
+    printf("\nNumber of frames: %lu\nTotal Runtime %f\n", frame, runTime);
+    printf("Average FPS: %f\n\n", 1.0 / (runTime / frame));
+    
     // Shutdown
     SDL_DestroyRenderer(_renderer);
     SDL_DestroyWindow(_window);

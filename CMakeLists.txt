@@ -7,6 +7,8 @@ cmake_minimum_required (VERSION 3.15)
 project (RealTimeGraphics)
 set (EXECUTABLE_NAME "rtg")
 
+set(CMAKE_BUILD_TYPE Debug)
+
 ### Directory Structure
 set (BIN_DIR "${CMAKE_SOURCE_DIR}/bin")     # Binary Files
 set (SRC_DIR "${CMAKE_SOURCE_DIR}/src")     # Source Files
