@@ -4,10 +4,10 @@
 cmake_minimum_required (VERSION 3.15)
 
 ### General Project Settings
-project (RealTimeGraphics)
+project (RealTimeGraphics C)
 set (EXECUTABLE_NAME "rtg")
 
-set(CMAKE_BUILD_TYPE Debug)
+#set(CMAKE_BUILD_TYPE Debug)
 
 ### Directory Structure
 set (BIN_DIR "${CMAKE_SOURCE_DIR}/bin")     # Binary Files
@@ -32,6 +32,14 @@ set (OPENGL_VERSION_MINOR 3)
 ###
 ### Everything below this line will not be needed to be edited in general.
 ###
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE Release)
+endif()
+
+set(CMAKE_C_FLAGS "-Wall -Wextra")
+set(CMAKE_C_FLAGS_DEBUG "-g")
+set(CMAKE_C_FLAGS_RELEASE "-O3")
+
 set (EXECUTABLE_OUTPUT_PATH ${BIN_DIR})
 
 ### Source file globbing
