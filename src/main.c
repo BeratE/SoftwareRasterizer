@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <math.h>
 #include "SDL2/SDL.h"
 
 #include "config.h"
@@ -84,12 +85,20 @@ int main ()
 	ClearColorBuffer(buffer, 0);
 	
 	uint32_t cx = 300, cy = 300;
-	for (int i = 0; i <= 300; i += 20) {
-	    WriteLine(buffer, cx, cy, 600, 600 - i, 255);
-	    WriteLine(buffer, cx, cy, 600 - i, 600, 160);
+	for (int i = 0; i <= 300; i += 1) {
+	    // x1 > x0 && y1 > y0
+	    WriteLine(buffer, cx, cy, 600, 300+i, 255); // m <= 1
+	    WriteLine(buffer, cx, cy, 600-i, 600, 160); // m > 1
 
+	    // x1 < x0 && y1 > y0
+	    WriteLine(buffer, cx, cy, 300-i, 600, 255);
+	    WriteLine(buffer, cx, cy, 0, 600-i, 160); 
+	    
 	    WriteLine(buffer, cx, cy, 0, 300 - i, 255);
 	    WriteLine(buffer, cx, cy, 300 - i, 0, 160);
+
+	    WriteLine(buffer, cx, cy, 600-i, 0, 255); 
+	    WriteLine(buffer, cx, cy, 600, 300-i, 160);
 	}
 	
 	// Blit texture content to the screen
@@ -109,6 +118,7 @@ int main ()
     printf("Average FPS: %f\n\n", 1.0 / (runTime / frame));
     
     // Shutdown
+    free(buffer);
     SDL_DestroyRenderer(_renderer);
     SDL_DestroyWindow(_window);
     SDL_Quit();
