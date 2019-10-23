@@ -1,8 +1,8 @@
 #ifndef RASTERIZER_H
 #define RASTERIZER_H
+/* Methods for rasterizing primitives onto a colorbuffer. */
 
 #include "colorbuffer.h"
-
 
 void WritePixel(ColorBuffer *buffer,
 		uint_fast32_t x, uint_fast32_t y,

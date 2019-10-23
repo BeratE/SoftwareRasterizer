@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <time.h>
 #include <math.h>
 #include "SDL2/SDL.h"
 
@@ -83,27 +84,15 @@ int main ()
 	}
 
 	ClearColorBuffer(buffer, 0);
+
+	sin(time(NULL));
+	WriteLine(buffer, 300, 300, 600, 600, 255);
+
 	
-	uint32_t cx = 300, cy = 300;
-	for (int i = 0; i <= 300; i += 1) {
-	    // x1 > x0 && y1 > y0
-	    WriteLine(buffer, cx, cy, 600, 300+i, 255); // m <= 1
-	    WriteLine(buffer, cx, cy, 600-i, 600, 160); // m > 1
-
-	    // x1 < x0 && y1 > y0
-	    WriteLine(buffer, cx, cy, 300-i, 600, 255);
-	    WriteLine(buffer, cx, cy, 0, 600-i, 160); 
-	    
-	    WriteLine(buffer, cx, cy, 0, 300 - i, 255);
-	    WriteLine(buffer, cx, cy, 300 - i, 0, 160);
-
-	    WriteLine(buffer, cx, cy, 600-i, 0, 255); 
-	    WriteLine(buffer, cx, cy, 600, 300-i, 160);
-	}
 	
 	// Blit texture content to the screen
 	SDL_UpdateTexture(_texture, NULL, &(buffer->array[0]), _texWidth * 4);
-	SDL_RenderCopy(_renderer, _texture, NULL, NULL );
+	SDL_RenderCopyEx(_renderer, _texture, NULL, NULL, 0, NULL, SDL_FLIP_VERTICAL);
         SDL_RenderPresent(_renderer);
 	
 	// Performance measurements
@@ -119,6 +108,7 @@ int main ()
     
     // Shutdown
     free(buffer);
+    
     SDL_DestroyRenderer(_renderer);
     SDL_DestroyWindow(_window);
     SDL_Quit();

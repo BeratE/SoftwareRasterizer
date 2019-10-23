@@ -25,9 +25,7 @@ set (LIBS GL dl ${SDL2_LIBRARIES})
 set (INCS ${SRC_DIR} ${INC_DIR} ${SDL2_INCLUDE_DIRS})
 
 ### Configuration File Settings
-## OpenGL Version Number
-set (OPENGL_VERSION_MAJOR 3)
-set (OPENGL_VERSION_MINOR 3)
+
 
 ###
 ### Everything below this line will not be needed to be edited in general.
@@ -53,7 +51,7 @@ file (GLOB_RECURSE HEADER_FILES
 
 ### Create configuration file from CMake settings
 configure_file (
-  "${SRC_DIR}/config.h.in"
+  "${CMAKE_SOURCE_DIR}/cmake/config.h.in"
   "${SRC_DIR}/config.h")
 
 ### Create and Link Executable
