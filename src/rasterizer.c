@@ -2,8 +2,8 @@
 #include <stdlib.h>
 
 void WritePixel(ColorBuffer *buffer,
-		uint_fast32_t x, uint_fast32_t y,
-		uint8_t b, uint8_t g, uint8_t r, uint8_t a)
+		unsigned int x, unsigned int y,
+		unsigned char b, unsigned char g, unsigned char r, unsigned char a)
 /* Writes the desired color values in the x,y coordinates of the color buffer. */
 {
     const size_t offset = (buffer->width * y + x) * 4;
@@ -14,16 +14,14 @@ void WritePixel(ColorBuffer *buffer,
 }
 
 void WriteLine(ColorBuffer *buffer,
-	       uint_fast32_t x0, uint_fast32_t y0,
-	       uint_fast32_t x1, uint_fast32_t y1, uint8_t value)
+	       unsigned int x0, unsigned int y0,
+	       unsigned int x1, unsigned int y1, unsigned char value)
 /* Bresenheim Midpoint Line Rasterization.  */
 {
-    int32_t dx = x1 - x0;
-    int32_t dy = y1 - y0;
-    uint32_t x = x0;
-    uint32_t y = y0;
-    int32_t xi = 1;
-    int32_t yi = 1;
+    int dx = x1 - x0;
+    int dy = y1 - y0;
+    int xi = 1;
+    int yi = 1;
     if (dx < 0) {
 	dx = -dx;
 	xi = -1;
@@ -34,11 +32,11 @@ void WriteLine(ColorBuffer *buffer,
     }    
 
     // 0 <= f' <= 1
-    int32_t d = 2*dy - dx;
-    int32_t smallerIncr = 2*dy;        // Step into E | N
-    int32_t greaterIncr = 2*(dy - dx); // Step into NE
-    int32_t grIncX = xi;
-    int32_t smIncY = 0;
+    int d = 2*dy - dx;
+    int smallerIncr = 2*dy;        // Step into E | N
+    int greaterIncr = 2*(dy - dx); // Step into NE
+    int grIncX = xi;
+    int smIncY = 0;
     // 1 < f'
     if (dy > dx) {
 	d = dy - 2*dx;
@@ -47,6 +45,9 @@ void WriteLine(ColorBuffer *buffer,
 	grIncX = 0;
 	smIncY = yi;
     }
+
+    unsigned int x = x0;
+    unsigned int y = y0;
 
     // Incremental Rasterization
     while (x != x1 || y != y1) {

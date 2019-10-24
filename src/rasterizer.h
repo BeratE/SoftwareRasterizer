@@ -5,11 +5,11 @@
 #include "colorbuffer.h"
 
 void WritePixel(ColorBuffer *buffer,
-		uint_fast32_t x, uint_fast32_t y,
-		uint8_t b, uint8_t g, uint8_t r, uint8_t a);
+		unsigned int x, unsigned int y,
+		unsigned char b, unsigned char g, unsigned char r, unsigned char a);
 
 void WriteLine(ColorBuffer *buffer,
-	       uint_fast32_t x0, uint_fast32_t y0,
-	       uint_fast32_t x1, uint_fast32_t y1, uint8_t value);
+	       unsigned int x0, unsigned int y0,
+	       unsigned int x1, unsigned int y1, unsigned char value);
 
 #endif // RASTERIZER_H

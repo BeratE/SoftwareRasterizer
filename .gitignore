@@ -19,5 +19,4 @@ auto-save-list
 tramp
 .\#*
 
-# Other
-bin
+build

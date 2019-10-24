@@ -11,8 +11,8 @@
 SDL_Window *_window = NULL;
 SDL_Renderer *_renderer = NULL;
 
-uint_fast32_t _texWidth = 600;
-uint_fast32_t _texHeight = 600;
+unsigned int _texWidth = 600;
+unsigned int _texHeight = 600;
 SDL_Texture* _texture = NULL;
 
 
@@ -61,7 +61,7 @@ int main ()
     init_window();
     
     SDL_Event event;
-    uint64_t frame = 0;
+    unsigned long frame = 0;
     double runTime = 0;
     int isRunning = 1;
     ColorBuffer *buffer = CreateColorBuffer(_texWidth, _texHeight, 4);
@@ -96,8 +96,8 @@ int main ()
         SDL_RenderPresent(_renderer);
 	
 	// Performance measurements
-        const Uint64 end = SDL_GetPerformanceCounter();
-        const Uint64 freq = SDL_GetPerformanceFrequency();
+        const unsigned long end = SDL_GetPerformanceCounter();
+        const unsigned long freq = SDL_GetPerformanceFrequency();
         const double seconds = (end - start) / (double)(freq);
 	frame++;
 	runTime += seconds;
