@@ -35,6 +35,12 @@ void MAT_SetIndex(Matrix* mat, size_t row, size_t col, double value)
     mat->arr[row*mat->columns + col] = value;
 }
 
+double MAT_GetIndex(Matrix* mat, size_t row, size_t col)
+/* Returns the value of the matrix entry at [row, col}*/
+{
+    return mat->arr[row*mat->columns + col];
+}
+
 void MAT_EyeNxMf(size_t rows, size_t cols, double *matOut)
 /* Assigns given matrix array to the (cutoff) identity of size n = height, m = width. */
 {

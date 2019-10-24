@@ -9,7 +9,6 @@ set (EXECUTABLE_NAME "rtg")
 set(CMAKE_BUILD_TYPE Debug)
 
 ### Directory Structure
-set (BIN_DIR "${CMAKE_SOURCE_DIR}/bin")     # Binary Files
 set (SRC_DIR "${CMAKE_SOURCE_DIR}/src")     # Source Files
 set (LIB_DIR "${CMAKE_SOURCE_DIR}/lib")     # Static libraries
 set (INC_DIR "${CMAKE_SOURCE_DIR}/include") # Addition include

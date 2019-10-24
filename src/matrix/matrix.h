@@ -17,6 +17,7 @@ Matrix* MAT_CreateMatrix(size_t rows, size_t cols);
 void MAT_FreeMatrix(Matrix* mat);
 
 void MAT_SetIndex(Matrix* mat, size_t row, size_t col, double value);
+double MAT_GetIndex(Matrix* mat, size_t row, size_t col);
 
 void MAT_EyeNxMf(size_t rows, size_t cols, double *matOut);
 void MAT_EyeNxNf(size_t size, double *matOut);
