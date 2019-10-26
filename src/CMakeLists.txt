@@ -1,29 +1,44 @@
+#### Source Cmake file
 cmake_minimum_required (VERSION 3.15)
 
+
 ### Software Rendering Engine library files
+set (SRE_TGT sre) # Name of target library
+set (SRE_DIR "${SRC_DIR}/sre")
 set (SRE_FILES
   # Header
-  ${SRC_DIR}/colorbuffer.h
-  ${SRC_DIR}/pipeline.h
-  ${SRC_DIR}/rasterizer.h
+  ${SRE_DIR}/colorbuffer.h
+  ${SRE_DIR}/pipeline.h
+  ${SRE_DIR}/rasterizer.h
   # Source
-  ${SRC_DIR}/colorbuffer.c
-  ${SRC_DIR}/pipeline.c
-  ${SRC_DIR}/rasterizer.c)
+  ${SRE_DIR}/colorbuffer.c
+  ${SRE_DIR}/pipeline.c
+  ${SRE_DIR}/rasterizer.c)
+
 
 ### Matrix Library files
+### Simple Matrix Operations Library (smol)
+set (MAT_TGT smol) # Name of target library
+set (MAT_DIR "${SRC_DIR}/smol")
 set (MAT_FILES
-  ${SRC_DIR}/matrix/matrix.h
-  ${SRC_DIR}/matrix/matrix.c)
+  # Header
+  ${MAT_DIR}/matrix.h
+  # Source
+  ${MAT_DIR}/matrix.c)
+
 
 ### Application files
 set (APP_FILES
-  ${SRC_DIR}/main.c
-  ${SRC_DIR}/config.h)
+  # Header
+  ${SRC_DIR}/config.h
+  # Source
+  ${SRC_DIR}/main.c)
 
 
-add_library(mat ${MAT_FILES})
-add_library(sre ${SRE_FILES})
+### Target libraries
+add_library(${MAT_TGT} ${MAT_FILES})
+add_library(${SRE_TGT} ${SRE_FILES})
 
+### Final target executable
 add_executable (${EXECUTABLE_NAME} ${APP_FILES})
-target_link_libraries(${EXECUTABLE_NAME} ${LIBS} mat sre)
+target_link_libraries(${EXECUTABLE_NAME} ${LIBS} ${MAT_TGT} ${SRE_TGT})

@@ -19,13 +19,15 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 find_package(OpenGL REQUIRED)
 find_package(SDL2 REQUIRED)
 
-set (LIBS GL dl ${SDL2_LIBRARIES})
-set (INCS ${SRC_DIR} ${INC_DIR} ${SDL2_INCLUDE_DIRS})
+set (INCS ${INC_DIR} ${SDL2_INCLUDE_DIRS}) # Include directories for compiling
+set (LIBS GL dl ${SDL2_LIBRARIES})         # Libraries to link target against
+
 
 
 ###
 ### Everything below this line will not be needed to be edited in general.
 ###
+
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
@@ -40,10 +42,12 @@ configure_file (
   "${SRC_DIR}/config.h")
 
 ### Create and Link Executable
-link_directories(${LIB_DIR})
-include_directories(${INCS})
+link_directories(${LIB_DIR}) # Link targets against following libraries
+include_directories(${INCS}) # Include these targets for the compiling process
 
+# Main Source directory
 add_subdirectory(src)
 
+# Unit testing
 enable_testing()
 add_subdirectory(test)

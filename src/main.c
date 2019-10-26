@@ -4,8 +4,8 @@
 #include "SDL2/SDL.h"
 
 #include "config.h"
-#include "colorbuffer.h"
-#include "rasterizer.h"
+#include "sre/colorbuffer.h"
+#include "sre/rasterizer.h"
 
 
 SDL_Window *_window = NULL;

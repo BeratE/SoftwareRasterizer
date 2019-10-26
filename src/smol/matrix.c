@@ -4,12 +4,12 @@
 //
 // Matrix Creation
 //
-Matrix* MAT_CreateMatrix(size_t rows, size_t cols)
+SMOL_Matrix* SMOL_CreateMatrix(size_t rows, size_t cols)
 /* Returns a newly allocated Matrix of given size and
  * initializes its values with zero.
  * ! Allocated memory has to be freed at some point.*/
 {
-    Matrix *m = malloc(sizeof(Matrix));
+    SMOL_Matrix *m = malloc(sizeof(SMOL_Matrix));
     m->rows = rows;
     m->columns = cols;
     size_t size = sizeof(double) * rows * cols;
@@ -18,7 +18,7 @@ Matrix* MAT_CreateMatrix(size_t rows, size_t cols)
     return m;
 }
 
-void MAT_FreeMatrix(Matrix* mat)
+void SMOL_FreeMatrix(SMOL_Matrix* mat)
 /* Free memory allocated by the matrix. */
 {
     free(mat->arr);
@@ -29,19 +29,19 @@ void MAT_FreeMatrix(Matrix* mat)
 //
 // Matrix Modification
 //
-void MAT_SetIndex(Matrix* mat, size_t row, size_t col, double value)
+void SMOL_SetIndex(SMOL_Matrix* mat, size_t row, size_t col, double value)
 /* Sets the value of given matrix at position [row, col]*/
 {
     mat->arr[row*mat->columns + col] = value;
 }
 
-double MAT_GetIndex(Matrix* mat, size_t row, size_t col)
+double SMOL_GetIndex(SMOL_Matrix* mat, size_t row, size_t col)
 /* Returns the value of the matrix entry at [row, col}*/
 {
     return mat->arr[row*mat->columns + col];
 }
 
-void MAT_EyeNxMf(size_t rows, size_t cols, double *matOut)
+void SMOL_EyeNxMf(size_t rows, size_t cols, double *matOut)
 /* Assigns given matrix array to the (cutoff) identity of size n = height, m = width. */
 {
     memset(matOut, 0.0, sizeof(double) * rows * cols);
@@ -51,22 +51,22 @@ void MAT_EyeNxMf(size_t rows, size_t cols, double *matOut)
     }
 }
 
-void MAT_EyeNxNf(size_t size, double *matOut)
+void SMOL_EyeNxNf(size_t size, double *matOut)
 /* Assigns given matrix array to the identity matrix of size n. */
 {
-    MAT_EyeNxMf(size, size, matOut);
+    SMOL_EyeNxMf(size, size, matOut);
 }
 
-void MAT_EyeMat(Matrix *mat)
+void SMOL_EyeMat(SMOL_Matrix *mat)
 /* Assigns given matrix of variable size to the (cutoff) identity. */
 {
-    MAT_EyeNxMf(mat->rows, mat->columns, mat->arr);
+    SMOL_EyeNxMf(mat->rows, mat->columns, mat->arr);
 }
 
 //
 // Matrix Multiplication
 //
-void MAT_MultiplyNMxMKf(size_t nA, size_t mAB, size_t kB,
+void SMOL_MultiplyNMxMKf(size_t nA, size_t mAB, size_t kB,
 		       const double *matA, const double *matB, double *matCout)
 /* Multiply two matrix arrays of of NMxMK size; A * B = C. 
  * Matrix Array C has to be of size NxK. */
@@ -80,22 +80,28 @@ void MAT_MultiplyNMxMKf(size_t nA, size_t mAB, size_t kB,
     }
 }
 
-void MAT_MultiplyNxNf(size_t size, const double *matA, const double *matB, double *matCout)
+void SMOL_MultiplyNxNf(size_t size, const double *matA, const double *matB, double *matCout)
 /* Multiply two square matrix arrays of size N; A * B = C. */
 {
-    MAT_MultiplyNMxMKf(size, size, size, matA, matB, matCout);
+    SMOL_MultiplyNMxMKf(size, size, size, matA, matB, matCout);
 }
 
-void MAT_MultiplyMat(const Matrix *matA, const Matrix *matB, Matrix *matCout)
+void SMOL_MultiplyMat(const SMOL_Matrix *matA, const SMOL_Matrix *matB, SMOL_Matrix *matCout)
 /* Multiply* two matrices of size NxM and MxK to a matrix NxK; A * B = C */
 {
-    MAT_MultiplyNMxMKf(matA->rows, matA->columns, matB->rows, matA->arr, matB->arr, matCout->arr);
+    SMOL_MultiplyNMxMKf(matA->rows, matA->columns, matB->rows, matA->arr, matB->arr, matCout->arr);
 }
 
-double MAT_DotNf(size_t size, const double *vecA, const double *vecB)
+double SMOL_DotNf(size_t size, const double *vecA, const double *vecB)
 /* Return the dot product between the two given vectors of given size. */
 {
     double dot = 0.0;
-    MAT_MultiplyNMxMKf(1, size, 1, vecA, vecB, &dot);
+    SMOL_MultiplyNMxMKf(1, size, 1, vecA, vecB, &dot);
     return dot;
+}
+
+double SMOL_DotMat(const SMOL_Matrix* vecA, const SMOL_Matrix* vecB)
+/* Return the dot product of vector A and vector B. */
+{
+
 }
