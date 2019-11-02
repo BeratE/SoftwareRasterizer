@@ -16,5 +16,8 @@ The CMakeLists.txt in the test/ directory contains definitions for test executab
 
 Executing _make test_ in the build/ directory will start the CTest process, which in turn executes all defined test executables. CTest will print a short list of passed - and failed - tests. Details about a particular test suite can be obtained by executing the individual test executable manually. This will print out a more detailed view of all the assertions and checks made and which test cases in particular failed, if any.
 
+## Libraries
+The appliccation currently uses SDL2 for displaying the rendered colorbuffer onto the screen.
+
 ## Licence
 This software is published under the GNU GPLv3.
