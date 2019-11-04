@@ -1,15 +1,14 @@
 #ifndef RASTERIZER_H
 #define RASTERIZER_H
-/* Methods for rasterizing primitives onto a colorbuffer. */
+/* Rasterizing primitives onto a texturebuffer. */
 
-#include "colorbuffer.h"
+#include "texturebuffer.h"
 
-void WritePixel(ColorBuffer *buffer,
-		unsigned int x, unsigned int y,
-		unsigned char b, unsigned char g, unsigned char r, unsigned char a);
+void WritePixel(TextureBuffer *buffer, Texel value,
+		unsigned int x, unsigned int y);
 
-void WriteLine(ColorBuffer *buffer,
+void WriteLine(TextureBuffer *buffer, Texel value,
 	       unsigned int x0, unsigned int y0,
-	       unsigned int x1, unsigned int y1, unsigned char value);
+	       unsigned int x1, unsigned int y1);
 
 #endif // RASTERIZER_H

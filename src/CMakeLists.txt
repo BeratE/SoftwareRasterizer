@@ -7,11 +7,12 @@ set (SRE_TGT sre) # Name of target library
 set (SRE_DIR "${SRC_DIR}/sre")
 set (SRE_FILES
   # Header
-  ${SRE_DIR}/colorbuffer.h
+  ${SRE_DIR}/texturebuffer.h
   ${SRE_DIR}/pipeline.h
   ${SRE_DIR}/rasterizer.h
+  ${SRE_DIR}/textureformat.h
   # Source
-  ${SRE_DIR}/colorbuffer.c
+  ${SRE_DIR}/texturebuffer.c
   ${SRE_DIR}/pipeline.c
   ${SRE_DIR}/rasterizer.c)
 

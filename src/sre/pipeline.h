@@ -3,7 +3,7 @@
 /* Functions for accessing state and rendering pipeline. */
 
 #include <stdlib.h>
-#include "colorbuffer.h"
+#include "texturebuffer.h"
 
 enum PRIMITIVE_TYPE {
     POINT, LINE, TRIANGLE

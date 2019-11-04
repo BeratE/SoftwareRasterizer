@@ -16,39 +16,53 @@
 /* Convienience struct of matrix elements and information. */
 typedef struct {
     size_t rows;
-    size_t columns;
+    size_t cols;
     double *arr;
 } SMOL_Matrix;
 
 
-// Memory Allocation and release
 SMOL_Matrix* SMOL_CreateMatrix(size_t rows, size_t cols);
-void SMOL_FreeMatrix(SMOL_Matrix* mat);
+SMOL_Matrix* SMOL_CopyMatrix(const SMOL_Matrix *mat);
+void         SMOL_FreeMatrix(SMOL_Matrix* mat);
 
-// Convinient indexing
+void SMOL_FillNxMf(double* mat, size_t rows, size_t cols, double value);
+void SMOL_FillMat(SMOL_Matrix *mat, double value);
+
 void SMOL_SetIndex(SMOL_Matrix* mat, size_t row, size_t col, double value);
-double SMOL_GetIndex(SMOL_Matrix* mat, size_t row, size_t col);
+double SMOL_GetIndex(const SMOL_Matrix* mat, size_t row, size_t col);
 
-// Identity
-void SMOL_EyeNxMf(size_t rows, size_t cols, double *matOut);
-void SMOL_EyeNxNf(size_t size, double *matOut);
+void SMOL_EyeNxNf(double *matOut, size_t size);
 void SMOL_EyeMat(SMOL_Matrix *matOut);
 
-// Multiplication
-void SMOL_MultiplyNMxMKf(size_t nA, size_t mAB, size_t kB,
-				const double *matA, const double *matB, double *matCout);
-void SMOL_MultiplyNxNf(size_t size, const double *matA, const double *matB, double *matCout);
-void SMOL_MultiplyMat(const SMOL_Matrix *matA, const SMOL_Matrix *matB, SMOL_Matrix *matCout);
+void SMOL_Perspective4x4f(double *matOut);
+void SMOL_PerspectiveMat(SMOL_Matrix *matOut);
 
-double SMOL_DotNf(size_t size, const double *vecA, const double *vecB);
-double SMOL_DotMat(const SMOL_Matrix* vecA, const SMOL_Matrix* vecB);
+void SMOL_Camera4x4f(const double* vec3pos, const double* vec3dir, const double* vec3up, double* matOut);
+void SMOL_CameraMat(const SMOL_Matrix* vec3pos, const SMOL_Matrix* vec3dir,
+		     const SMOL_Matrix* vec3up, SMOL_Matrix* matOut); 
 
-// Addition
-void SMOL_AddNxNf(size_t size, const double* matA, const double* matB, double* matCout);
-void SMOL_AddMatf(const SMOL_Matrix* matA, const SMOL_Matrix* matB, SMOL_Matrix* matCout);
+void SMOL_MultiplyNMxMKf(const double *matA,  const double *matB, double *matOut,
+			 size_t nA, size_t mAB, size_t kB);
+void SMOL_MultiplyNxNf(const double *matA, const double *matB, double *matOut, size_t size);
+void SMOL_MultiplyMat(const SMOL_Matrix *matA, const SMOL_Matrix *matB, SMOL_Matrix *matOut);
+
+void SMOL_ScalarMultiplyNxMf(const double *matA, double* matOut, size_t rows, size_t cols, double scalar);
+void SMOL_ScalarMultiplyMat(const SMOL_Matrix *matA, SMOL_Matrix* matOut, double scalar);
+
+double SMOL_VecDotNx1f(const double *vecA, const double *vecB, size_t rows);
+double SMOL_VecDotMat(const SMOL_Matrix* vecA, const SMOL_Matrix* vecB);
+
+void SMOL_VecCross3x1f(const double *vecA, const double* vecB, double *vecOut);
+void SMOL_VecCrossMat(const SMOL_Matrix *vecA, const SMOL_Matrix *vecB, SMOL_Matrix *vecOut);
+
+void SMOL_AddNxMf(const double* matA, const double* matB, double* matCout,
+		  size_t rows, size_t cols);
+void SMOL_AddMat(const SMOL_Matrix* matA, const SMOL_Matrix* matB, SMOL_Matrix* matOut);
 
 
-// Substraction
+void SMOL_SubtractNxMf(const double* matA, const double* matB, double* matOut,
+		       size_t rows, size_t cols);
+void SMOL_SubtractMat(const SMOL_Matrix* matA, const SMOL_Matrix* matB, SMOL_Matrix* matOut);
 
 // Projection
 

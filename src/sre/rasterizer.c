@@ -1,21 +1,18 @@
 #include "rasterizer.h"
 #include <stdlib.h>
+#include <string.h>
 
-void WritePixel(ColorBuffer *buffer,
-		unsigned int x, unsigned int y,
-		unsigned char b, unsigned char g, unsigned char r, unsigned char a)
-/* Writes the desired color values in the x,y coordinates of the color buffer. */
+void WritePixel(TextureBuffer *buffer, Texel value,
+		unsigned int x, unsigned int y)
+/* Writes the desired color values in the (x, y) coordinates of the color buffer. */
 {
-    const size_t offset = (buffer->width * y + x) * 4;
-    buffer->array[offset + 0] = b;
-    buffer->array[offset + 1] = g;
-    buffer->array[offset + 2] = r;
-    buffer->array[offset + 3] = a;
+    const size_t offset = (buffer->width * y + x) * buffer->fsize;
+    memcpy(&buffer->values[offset], &value, sizeof(value));
 }
 
-void WriteLine(ColorBuffer *buffer,
+void WriteLine(TextureBuffer *buffer, Texel value,
 	       unsigned int x0, unsigned int y0,
-	       unsigned int x1, unsigned int y1, unsigned char value)
+	       unsigned int x1, unsigned int y1)
 /* Bresenheim Midpoint Line Rasterization.  */
 {
     int dx = x1 - x0;
@@ -51,7 +48,7 @@ void WriteLine(ColorBuffer *buffer,
 
     // Incremental Rasterization
     while (x != x1 || y != y1) {
-	WritePixel(buffer, x, y, value, value, value, 255);
+	WritePixel(buffer, value, x, y);
 	if (d <= 0) {
 	    d += smallerIncr;
 	    x += xi;

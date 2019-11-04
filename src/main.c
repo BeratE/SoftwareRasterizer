@@ -4,7 +4,7 @@
 #include "SDL2/SDL.h"
 
 #include "config.h"
-#include "sre/colorbuffer.h"
+#include "sre/texturebuffer.h"
 #include "sre/rasterizer.h"
 
 
@@ -64,7 +64,7 @@ int main ()
     unsigned long frame = 0;
     double runTime = 0;
     int isRunning = 1;
-    ColorBuffer *buffer = CreateColorBuffer(_texWidth, _texHeight, 4);
+    TextureBuffer *buffer = CreateTextureBuffer(_texWidth, _texHeight, TEXTURE_FORMAT_RGBA8);
     
     // Main loop
     while (isRunning) {
@@ -83,15 +83,15 @@ int main ()
 	    }
 	}
 
-	ClearColorBuffer(buffer, 0);
+	ClearTextureBuffer(buffer, 0);
 
 	sin(time(NULL));
-	WriteLine(buffer, 300, 300, 600, 600, 255);
+	WriteLine(buffer, (Texel)(sRGBA8){.r=255}, 300, 300, 600, 600);
 
 	
 	
 	// Blit texture content to the screen
-	SDL_UpdateTexture(_texture, NULL, &(buffer->array[0]), _texWidth * 4);
+	SDL_UpdateTexture(_texture, NULL, &(buffer->values[0]), _texWidth * 4);
 	SDL_RenderCopyEx(_renderer, _texture, NULL, NULL, 0, NULL, SDL_FLIP_VERTICAL);
         SDL_RenderPresent(_renderer);
 	
