@@ -1,21 +1,37 @@
 #ifndef PIPELINE_H
 #define PIPELINE_H
-/* Functions for accessing state and rendering pipeline. */
+/* Software rasterization pipeline. */
 
 #include <stdlib.h>
 #include "texturebuffer.h"
 
-enum PRIMITIVE_TYPE {
-    POINT, LINE, TRIANGLE
+typedef struct {
+    int x, y, w, h;
+} SR_ViewPort;
+
+typedef struct {
+    TextureBuffer colorbuffer;
+    double* depthbuffer;
+} SR_FrameBuffer;
+
+enum SR_PRIMITIVE_TYPE{
+    SR_POINTS = 0, SR_LINES, SR_TRIANGLES
+};
+enum SR_DATA_TYPE{
+    SR_BYTE = 0, SR_INT, SR_UINT, SR_FLOAT
+};
+enum SR_BUFFER_TYPE {
+    SR_VERTEX_BUFFER = 0
 };
 
-// Set Global States
-void setViewPort(unsigned int x0, unsigned int y0,
-		 unsigned int width, unsigned int height);
-void setFrustum(double near, double far, double fov, double aspect);
+void SR_Init();
 
-// Rendering Pipeline
-void drawArrays(int primitive, const double *arraybuffer,
-		size_t buffer_size, size_t buffer_offset, size_t stride); 
+void SR_SetViewPort(int x, int y, int w, int h);
+
+void SR_GenBuffers(int *handles, size_t count);
+void SR_SetBufferData(int handle, void* data, size_t arrsize);
+void SR_BindBuffer(int buffertype, int handle);
+
+
 
 #endif // PIPELINE_H

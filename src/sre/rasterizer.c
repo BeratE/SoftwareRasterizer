@@ -1,8 +1,8 @@
-#include "rasterizer.h"
 #include <stdlib.h>
 #include <string.h>
+#include "texturebuffer.h"
 
-void WritePixel(TextureBuffer *buffer, Texel value,
+void SR_WritePixel(TextureBuffer *buffer, Texel value,
 		unsigned int x, unsigned int y)
 /* Writes the desired color values in the (x, y) coordinates of the color buffer. */
 {
@@ -10,10 +10,10 @@ void WritePixel(TextureBuffer *buffer, Texel value,
     memcpy(&buffer->values[offset], &value, sizeof(value));
 }
 
-void WriteLine(TextureBuffer *buffer, Texel value,
+void SR_WriteLine(TextureBuffer *buffer, Texel value,
 	       unsigned int x0, unsigned int y0,
 	       unsigned int x1, unsigned int y1)
-/* Bresenheim Midpoint Line Rasterization.  */
+/* Bresenheim Midpoint Line Rasterization. */
 {
     int dx = x1 - x0;
     int dy = y1 - y0;
@@ -48,7 +48,7 @@ void WriteLine(TextureBuffer *buffer, Texel value,
 
     // Incremental Rasterization
     while (x != x1 || y != y1) {
-	WritePixel(buffer, value, x, y);
+	SR_WritePixel(buffer, value, x, y);
 	if (d <= 0) {
 	    d += smallerIncr;
 	    x += xi;
@@ -58,6 +58,42 @@ void WriteLine(TextureBuffer *buffer, Texel value,
 	    d += greaterIncr;
 	    x += grIncX;
 	    y += yi;
+	}
+    }
+}
+
+void SR_WriteTriangle(TextureBuffer *buffer, Texel value,
+		   unsigned int x0, unsigned int y0,
+		   unsigned int x1, unsigned int y1,
+		   unsigned int x2, unsigned int y2)
+/* Triangle rastierization using the pineda algorithm. */
+{
+    // Bounding rectangle
+    const int bx = (int)(x0 < x1 ? (x0 < x2 ? x0 : x2) : (x1 < x2 ? x1 : x2));
+    const int by = (int)(y0 < y1 ? (y0 < y2 ? y0 : y2) : (y1 < y2 ? y1 : y2));
+    const int bw = (int)(x0 > x1 ? (x0 > x2 ? x0 : x2) : (x1 > x2 ? x1 : x2));
+    const int bh = (int)(y0 > y1 ? (y0 > y2 ? y0 : y2) : (y1 > y2 ? y1 : y2));
+    
+    const int dx01 = (int)x1 -(int)x0;
+    const int dx12 = (int)x2 -(int)x1;
+    const int dx20 = (int)x0 -(int)x2;
+    const int dy01 = (int)y1 -(int)y0;
+    const int dy12 = (int)y2 -(int)y1;
+    const int dy20 = (int)y0 -(int)y2;
+
+    int e01, e12, e20; // Edge functions
+    for (int y = by; y <= bh; y++) {
+	e01 = (bx-(int)x0)*dy01 - (y-(int)y0)*dx01;
+	e12 = (bx-(int)x1)*dy12 - (y-(int)y1)*dx12;
+	e20 = (bx-(int)x2)*dy20 - (y-(int)y2)*dx20;
+	
+	for (int x = bx; x <= bw; x++) {
+	    if ((e01 >= 0) && (e12 >= 0) && (e20 >= 0))
+		SR_WritePixel(buffer, value, x, y);
+	    	    
+	    e01 += dy01;
+	    e12 += dy12;
+	    e20 += dy20;
 	}
     }
 }

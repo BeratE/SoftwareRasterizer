@@ -6,7 +6,7 @@
 #include "config.h"
 #include "sre/texturebuffer.h"
 #include "sre/rasterizer.h"
-
+#include "sre/pipeline.h"
 
 SDL_Window *_window = NULL;
 SDL_Renderer *_renderer = NULL;
@@ -14,7 +14,6 @@ SDL_Renderer *_renderer = NULL;
 unsigned int _texWidth = 600;
 unsigned int _texHeight = 600;
 SDL_Texture* _texture = NULL;
-
 
 static void sdl_die(const char * message)
 /* Print Error Message and Die. */
@@ -56,9 +55,14 @@ void init_window()
     SDL_SetRenderDrawColor(_renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
 }
 
-int main ()
+void init ()
 {
     init_window();
+}
+
+int main ()
+{
+    init();
     
     SDL_Event event;
     unsigned long frame = 0;
@@ -67,8 +71,13 @@ int main ()
     TextureBuffer *buffer = CreateTextureBuffer(_texWidth, _texHeight, TEXTURE_FORMAT_RGBA8);
     
     // Main loop
+    Uint64 lastTime = SDL_GetPerformanceCounter();
+    Uint64 currTime = SDL_GetPerformanceCounter();
+    double deltaTime = 0;
     while (isRunning) {
-	const Uint64 start = SDL_GetPerformanceCounter();
+	lastTime = currTime;
+	currTime = SDL_GetPerformanceCounter();
+        deltaTime = (currTime - lastTime) / (double)SDL_GetPerformanceFrequency();
 	
 	while (SDL_PollEvent(&event)) {
 	    if (event.type == SDL_QUIT) {
@@ -82,12 +91,22 @@ int main ()
 		}
 	    }
 	}
-
+	
 	ClearTextureBuffer(buffer, 0);
 
-	sin(time(NULL));
-	WriteLine(buffer, (Texel)(sRGBA8){.r=255}, 300, 300, 600, 600);
+	// Rendering
+	double vertexbuffer[] = {
+	-0.5, 0.0, 0.0, 1.0, // V1
+	0.0, 0.5, 0.0, 1.0,  // V2
+	0.0, 0.0, 1.0, 1.0,  // C3
+	};
 
+	SetVertexBufferObject(&vertexbuffer, sizeof(vertexbuffer)/sizeof(vertexbuffer[0]));
+	DrawArrays(TRIANGLES, 3, 0);
+	
+
+	SR_writeLine(buffer, (Texel)(sRGBA8){.r=255}, 300, 300, 600, 600);
+	SR_writeTriangle(buffer, (Texel)(sRGBA8){.g=255}, 100, 100, 150, 200, 200, 100);
 	
 	
 	// Blit texture content to the screen
@@ -95,12 +114,8 @@ int main ()
 	SDL_RenderCopyEx(_renderer, _texture, NULL, NULL, 0, NULL, SDL_FLIP_VERTICAL);
         SDL_RenderPresent(_renderer);
 	
-	// Performance measurements
-        const unsigned long end = SDL_GetPerformanceCounter();
-        const unsigned long freq = SDL_GetPerformanceFrequency();
-        const double seconds = (end - start) / (double)(freq);
 	frame++;
-	runTime += seconds;
+	runTime += deltaTime;
     }
 
     printf("\nNumber of frames: %lu\nTotal Runtime %f\n", frame, runTime);

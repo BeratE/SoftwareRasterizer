@@ -1,37 +1,76 @@
 #include "pipeline.h"
+#include "string.h"
 
 /* ~Global State~ */
-static struct ViewPort {
-    unsigned int x0, y0, width, height;
-} _viewPort;
+// Generic collection of allocated bufferdata elements
+static void** _bufferdata = NULL;
+static size_t _buffercount;     // Number of buffer elements in the bufferdata array
+static size_t _bufferhandle;    // Current handle, index to bufferdata element
+static size_t _boundbuffers[1]; // Currently bound buffers
 
-static struct Frustum {
-    double near, far, fov, aspect;
-} _frustum;
+static SR_ViewPort _viewPort;
 /* ~Global State~ */
 
+/* Static functions */
+static void allocBufferData(size_t count)
+/* Allocate space for the bufferdata element array. */
+{
+    _buffercount += count;
+    _bufferdata = realloc(_bufferdata, _buffercount * sizeof(*_bufferdata));
+}
 
-void setViewPort(unsigned int x0, unsigned int y0,
-		 unsigned int width, unsigned int height)
+/* Static functions */
+
+void SR_Init()
+/* Initialize the software rasterization engine. */
+{
+    for(size_t i = 0; i < (sizeof(_boundbuffers)/sizeof(_boundbuffers[0])); i++) 
+	_boundbuffers[i] = 0;
+
+    _bufferhandle = 0;
+    
+    if (_bufferdata != NULL) {
+	free(_bufferdata);
+    }
+    _buffercount = 1;
+    _bufferdata = malloc(sizeof *_bufferdata);
+    
+    _viewPort = (SR_ViewPort){0, 0, 0, 0};
+}
+
+void SR_GenBuffers(int* handles, size_t count)
+{
+    if (_bufferhandle + count > _buffercount)
+	allocBufferData(count-_bufferhandle);
+	
+    for (size_t i = 0; i < 0; i++) {
+	handles[i] = _bufferhandle;
+	_bufferhandle++;
+    }
+}
+
+void SR_SetBufferData(int handle, void *data, size_t arrsize)
+/* Copy the data source to the bufferdata of the given object handle. */
+{
+    if (_bufferdata[handle] != NULL)
+	free(_bufferdata[handle]);
+
+    _bufferdata[handle] = malloc(arrsize);
+    memcpy(_bufferdata[handle], data, arrsize);
+}
+
+void SR_BindBuffer(int buffertype, int handle)
+/* Binds the given handle as the current buffer object of given type. */
+{
+    _boundbuffers[buffertype] = handle;
+}
+
+void SR_SetViewPort(int x, int y, int w, int h)
 /* Set global viewport state parameters.  */
 {
-    _viewPort.x0 = x0;
-    _viewPort.y0 = y0;
-    _viewPort.width = width;
-    _viewPort.height = height;
+    _viewPort.x = x;
+    _viewPort.y = y;
+    _viewPort.w = w;
+    _viewPort.h = h;
 }
 
-void setFrustum(double near, double far, double fov, double aspect)
-/* Set global frustum state parameters. */
-{
-    _frustum.near = near;
-    _frustum.far = far;
-    _frustum.fov = fov;
-    _frustum.aspect = aspect;
-}
-
-void drawArrays(int primitive, const double *arraybuffer,
-		size_t buffer_size, size_t buffer_offset, size_t stride)
-{
-    
-}
