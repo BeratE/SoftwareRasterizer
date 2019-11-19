@@ -8,13 +8,12 @@ set (SRE_DIR "${SRC_DIR}/sre")
 set (SRE_FILES
   # Header
   ${SRE_DIR}/texturebuffer.h
-  ${SRE_DIR}/pipeline.h
   ${SRE_DIR}/rasterizer.h
-  ${SRE_DIR}/textureformat.h
+  ${SRE_DIR}/pipeline.h
   # Source
   ${SRE_DIR}/texturebuffer.c
-  ${SRE_DIR}/pipeline.c
-  ${SRE_DIR}/rasterizer.c)
+  ${SRE_DIR}/rasterizer.c
+  ${SRE_DIR}/pipeline.c)
 
 
 ### Matrix Library files

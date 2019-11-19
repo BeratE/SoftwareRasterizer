@@ -2,17 +2,17 @@
 #include <string.h>
 #include "texturebuffer.h"
 
-void SR_WritePixel(TextureBuffer *buffer, Texel value,
-		unsigned int x, unsigned int y)
+void SR_WritePixel(SR_TextureBuffer *buffer, SR_Texel value,
+		   unsigned int x, unsigned int y)
 /* Writes the desired color values in the (x, y) coordinates of the color buffer. */
 {
     const size_t offset = (buffer->width * y + x) * buffer->fsize;
     memcpy(&buffer->values[offset], &value, sizeof(value));
 }
 
-void SR_WriteLine(TextureBuffer *buffer, Texel value,
-	       unsigned int x0, unsigned int y0,
-	       unsigned int x1, unsigned int y1)
+void SR_WriteLine(SR_TextureBuffer *buffer, SR_Texel value,
+		  unsigned int x0, unsigned int y0,
+		  unsigned int x1, unsigned int y1)
 /* Bresenheim Midpoint Line Rasterization. */
 {
     int dx = x1 - x0;
@@ -62,10 +62,10 @@ void SR_WriteLine(TextureBuffer *buffer, Texel value,
     }
 }
 
-void SR_WriteTriangle(TextureBuffer *buffer, Texel value,
-		   unsigned int x0, unsigned int y0,
-		   unsigned int x1, unsigned int y1,
-		   unsigned int x2, unsigned int y2)
+void SR_WriteTriangle(SR_TextureBuffer *buffer,SR_Texel value,
+		      unsigned int x0, unsigned int y0,
+		      unsigned int x1, unsigned int y1,
+		      unsigned int x2, unsigned int y2)
 /* Triangle rastierization using the pineda algorithm. */
 {
     // Bounding rectangle
@@ -96,4 +96,15 @@ void SR_WriteTriangle(TextureBuffer *buffer, Texel value,
 	    e20 += dy20;
 	}
     }
+}
+
+void SR_WriteTriangleLine(SR_TextureBuffer *buffer, SR_Texel value,
+			  unsigned int x0, unsigned int y0,
+			  unsigned int x1, unsigned int y1,
+			  unsigned int x2, unsigned int y2)
+/* Rasterize a triangle as a wireframe. */ 
+{
+    SR_WriteLine(buffer, value, x0, y0, x1, y1);
+    SR_WriteLine(buffer, value, x1, y1, x2, y2);
+    SR_WriteLine(buffer, value, x2, y2, x0, y0);
 }
