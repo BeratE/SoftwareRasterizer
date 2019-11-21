@@ -13,11 +13,11 @@ MU_TEST(dotproduct) {
     SMOL_Matrix v1t = SMOL_AllocMatrix(1, 2);
     SMOL_Matrix v2  = SMOL_AllocMatrix(2, 1);
     
-    SMOL_SetIndex(&v1t, 0, 0, 0.5);
-    SMOL_SetIndex(&v1t, 0, 1, 0.5);
+    SMOL_SetField(&v1t, 0, 0, 0.5);
+    SMOL_SetField(&v1t, 0, 1, 0.5);
     
-    SMOL_SetIndex(&v2, 0, 0, -0.5);
-    SMOL_SetIndex(&v2, 1, 0, 0.5);
+    SMOL_SetField(&v2, 0, 0, -0.5);
+    SMOL_SetField(&v2, 1, 0, 0.5);
     
     SMOL_Matrix r1 = SMOL_MultiplyMat(&v1t, &v2);
     mu_assert_int_eq(r1.nRows, 1);
@@ -34,7 +34,7 @@ MU_TEST(addition) {
 
     for (int r = 0; r < 4; r++) {
 	for (int c = 0; c < 4; c++)
-	    SMOL_SetIndex(&m2, r, c, r+c);
+	    SMOL_SetField(&m2, r, c, r+c);
     }
     // Sucessfull addition
     SMOL_Matrix r1 = SMOL_AddMat(&m1, &m2);
@@ -43,7 +43,7 @@ MU_TEST(addition) {
 	    double ex = r + c;
 	    if (r == c) 
 		ex++;
-	    mu_assert_double_eq(ex, SMOL_GetIndex(&r1, r, c));
+	    mu_assert_double_eq(ex, SMOL_GetField(&r1, r, c));
 	}
     }
 
@@ -67,10 +67,10 @@ MU_TEST(multiplication) {
 
     mu_assert_int_eq(2, r1.nRows);
     mu_assert_int_eq(2, r1.nCols);
-    mu_assert_double_eq(1.0,  SMOL_GetIndex(&r1, 0, 0));
-    mu_assert_double_eq(0.0,  SMOL_GetIndex(&r1, 0, 1));
-    mu_assert_double_eq(0.0,  SMOL_GetIndex(&r1, 1, 0));
-    mu_assert_double_eq(-12.0, SMOL_GetIndex(&r1, 1, 1));
+    mu_assert_double_eq(1.0,  SMOL_GetField(&r1, 0, 0));
+    mu_assert_double_eq(0.0,  SMOL_GetField(&r1, 0, 1));
+    mu_assert_double_eq(0.0,  SMOL_GetField(&r1, 1, 0));
+    mu_assert_double_eq(-12.0, SMOL_GetField(&r1, 1, 1));
 
     SMOL_FreeV(1, &r1);
 }
@@ -81,12 +81,12 @@ MU_TEST(crossproduct) {
 
     SMOL_Matrix m1 = (SMOL_Matrix){.nRows=3,.nCols=1,.fields=a1};
     SMOL_Matrix m2 = (SMOL_Matrix){.nRows=3,.nCols=1,.fields=a2};
-    SMOL_Matrix m3 = SMOL_CrossMat(&m1, &m2);
+    SMOL_Matrix m3 = SMOL_CrossVec(&m1, &m2);
     
     mu_assert(m3.fields != NULL, "");
-    mu_assert_double_eq(-11.5, SMOL_GetIndex(&m3, 0, 0));
-    mu_assert_double_eq( 19,   SMOL_GetIndex(&m3, 1, 0));
-    mu_assert_double_eq(-7,   SMOL_GetIndex(&m3, 2, 0));
+    mu_assert_double_eq(-11.5, SMOL_GetField(&m3, 0, 0));
+    mu_assert_double_eq( 19,   SMOL_GetField(&m3, 1, 0));
+    mu_assert_double_eq(-7,   SMOL_GetField(&m3, 2, 0));
     
     /*    m1.nRows = 1;
     m1.nCols = 3;
