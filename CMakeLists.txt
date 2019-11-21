@@ -23,7 +23,6 @@ set (INCS ${INC_DIR} ${SDL2_INCLUDE_DIRS}) # Include directories for compiling
 set (LIBS GL dl ${SDL2_LIBRARIES})         # Libraries to link target against
 
 
-
 ###
 ### Everything below this line will not be needed to be edited in general.
 ###
@@ -49,5 +48,5 @@ include_directories(${INCS}) # Include these targets for the compiling process
 add_subdirectory(src)
 
 # Unit testing
-enable_testing()
-add_subdirectory(test)
+#enable_testing()
+#add_subdirectory(test)

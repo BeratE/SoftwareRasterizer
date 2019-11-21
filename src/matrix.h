@@ -3,6 +3,7 @@
 /* Simple Matrix Operation Library (smol). Small collection of handy Matrix operations. */
 
 #include <stdarg.h>
+#include <stdlib.h>
 
 typedef struct {
     size_t nRows;
