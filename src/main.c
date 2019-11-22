@@ -58,6 +58,8 @@ void init_window()
 void init ()
 {
     init_window();
+    SR_Init();
+    SR_SetViewPort(_texWidth, _texHeight);
 }
 
 int main ()
@@ -68,7 +70,6 @@ int main ()
     unsigned long frame = 0;
     double runTime = 0;
     int isRunning = 1;
-    SR_TextureBuffer buffer = SR_CreateTextureBuffer(_texWidth, _texHeight, SR_TEXTURE_FORMAT_RGBA8);
     
     // Main loop
     Uint64 lastTime = SDL_GetPerformanceCounter();
@@ -91,22 +92,12 @@ int main ()
 		}
 	    }
 	}
-	
-	SR_ClearTextureBuffer(&buffer, 0);
 
 	// Rendering
-	double vertexbuffer[] = {
-	-0.5, 0.0, 0.0, 1.0, // V1
-	0.0, 0.5, 0.0, 1.0,  // V2
-	0.0, 0.0, 1.0, 1.0,  // C3
-	};
-
-
-	//SR_writeLine(buffer, (Texel)(sRGBA8){.r=255}, 300, 300, 600, 600);
-	//SR_writeTriangle(buffer, (Texel)(sRGBA8){.g=255}, 100, 100, 150, 200, 200, 100);
-	
+	SR_DrawCube();
 	
 	// Blit texture content to the screen
+	SR_TextureBuffer buffer = SR_FetchFrameBuffer().colorBuffer;
 	SDL_UpdateTexture(_texture, NULL, &(buffer.values[0]), _texWidth * 4);
 	SDL_RenderCopyEx(_renderer, _texture, NULL, NULL, 0, NULL, SDL_FLIP_VERTICAL);
         SDL_RenderPresent(_renderer);
@@ -119,8 +110,6 @@ int main ()
     printf("Average FPS: %f\n\n", 1.0 / (runTime / frame));
     
     // Shutdown
-    SR_FreeTextureBuffer(&buffer);
-    
     SDL_DestroyRenderer(_renderer);
     SDL_DestroyWindow(_window);
     SDL_Quit();

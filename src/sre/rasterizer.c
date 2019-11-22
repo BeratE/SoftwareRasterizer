@@ -42,7 +42,7 @@ void SR_WriteLine(SR_TextureBuffer *buffer, const size_t *pos, const SR_Texel *v
     // Incremental Rasterization
     size_t linep[2] = {pos[0], pos[1]};
     while (linep[0] != pos[2] || linep[1] != pos[3]) {
-	SR_WritePixel(buffer, (size_t*)&linep, value);
+	SR_WritePixel(buffer, linep, value);
 	if (d <= 0) {
 	    d += smallerIncr;
 	    linep[0] += inc[0];
@@ -77,7 +77,7 @@ void SR_WriteTriangle(SR_TextureBuffer *buffer, const size_t *pos, const SR_Texe
 	
 	for (lpos[0] = bx; lpos[0] <= bw; lpos[0]++) {
 	    if ((e01 >= 0) && (e12 >= 0) && (e20 >= 0))
-		SR_WritePixel(buffer, (size_t*)&lpos, value);
+		SR_WritePixel(buffer, lpos, value);
 	    	    
 	    e01 += d01[1];
 	    e12 += d12[1];
@@ -92,7 +92,7 @@ void SR_WriteTriangleLine(SR_TextureBuffer *buffer, const size_t *pos, const SR_
     const size_t l01[4] = {pos[0], pos[1], pos[2], pos[3]};
     const size_t l12[4] = {pos[2], pos[3], pos[4], pos[5]};
     const size_t l20[4] = {pos[4], pos[5], pos[0], pos[1]};
-    SR_WriteLine(buffer, (size_t*)&l01, value);
-    SR_WriteLine(buffer, (size_t*)&l12, value);
-    SR_WriteLine(buffer, (size_t*)&l20, value);
+    SR_WriteLine(buffer, l01, value);
+    SR_WriteLine(buffer, l12, value);
+    SR_WriteLine(buffer, l20, value);
 }

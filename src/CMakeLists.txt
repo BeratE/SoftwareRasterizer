@@ -18,7 +18,6 @@ set (SRE_FILES
 ### Application files
 set (APP_FILES
   # Header
-  ${SRC_DIR}/matrix.h
   ${SRC_DIR}/config.h
   # Source
   ${SRC_DIR}/main.c)
