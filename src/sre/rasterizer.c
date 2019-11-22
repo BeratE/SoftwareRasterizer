@@ -2,37 +2,33 @@
 #include <string.h>
 #include "texturebuffer.h"
 
-void SR_WritePixel(SR_TextureBuffer *buffer, SR_Texel value,
-		   unsigned int x, unsigned int y)
+void SR_WritePixel(SR_TextureBuffer *buffer, const size_t *pos, const SR_Texel *value)
 /* Writes the desired color values in the (x, y) coordinates of the color buffer. */
 {
-    const size_t offset = (buffer->width * y + x) * buffer->fsize;
-    memcpy(&buffer->values[offset], &value, sizeof(value));
+    const size_t offset = (buffer->width * pos[1] + pos[0]) * buffer->fsize;
+    memcpy(&buffer->values[offset], value, sizeof(&value));
 }
 
-void SR_WriteLine(SR_TextureBuffer *buffer, SR_Texel value,
-		  unsigned int x0, unsigned int y0,
-		  unsigned int x1, unsigned int y1)
+void SR_WriteLine(SR_TextureBuffer *buffer, const size_t *pos, const SR_Texel *value)
 /* Bresenheim Midpoint Line Rasterization. */
 {
-    int dx = x1 - x0;
-    int dy = y1 - y0;
-    int xi = 1;
-    int yi = 1;
+    int dx = pos[2] - pos[0];
+    int dy = pos[3] - pos[1];
+    int inc[2] = {1, 1};
     if (dx < 0) {
 	dx = -dx;
-	xi = -1;
+	inc[0] = -1;
     }
     if (dy < 0) {
 	dy = -dy;
-	yi = -1;
+	inc[1] = -1;
     }    
 
     // 0 <= f' <= 1
     int d = 2*dy - dx;
     int smallerIncr = 2*dy;        // Step into E | N
     int greaterIncr = 2*(dy - dx); // Step into NE
-    int grIncX = xi;
+    int grIncX = inc[0];
     int smIncY = 0;
     // 1 < f'
     if (dy > dx) {
@@ -40,71 +36,63 @@ void SR_WriteLine(SR_TextureBuffer *buffer, SR_Texel value,
 	smallerIncr = greaterIncr;
 	greaterIncr = -2*dx;
 	grIncX = 0;
-	smIncY = yi;
+	smIncY = inc[1];
     }
 
-    unsigned int x = x0;
-    unsigned int y = y0;
-
     // Incremental Rasterization
-    while (x != x1 || y != y1) {
-	SR_WritePixel(buffer, value, x, y);
+    size_t linep[2] = {pos[0], pos[1]};
+    while (linep[0] != pos[2] || linep[1] != pos[3]) {
+	SR_WritePixel(buffer, (size_t*)&linep, value);
 	if (d <= 0) {
 	    d += smallerIncr;
-	    x += xi;
-	    y += smIncY;
+	    linep[0] += inc[0];
+	    linep[1] += smIncY;
 	}
 	else {       
 	    d += greaterIncr;
-	    x += grIncX;
-	    y += yi;
+	    linep[0] += grIncX;
+	    linep[1] += inc[1];
 	}
     }
 }
 
-void SR_WriteTriangle(SR_TextureBuffer *buffer,SR_Texel value,
-		      unsigned int x0, unsigned int y0,
-		      unsigned int x1, unsigned int y1,
-		      unsigned int x2, unsigned int y2)
+void SR_WriteTriangle(SR_TextureBuffer *buffer, const size_t *pos, const SR_Texel *value)
 /* Triangle rastierization using the pineda algorithm. */
 {
-    // Bounding rectangle
-    const int bx = (int)(x0 < x1 ? (x0 < x2 ? x0 : x2) : (x1 < x2 ? x1 : x2));
-    const int by = (int)(y0 < y1 ? (y0 < y2 ? y0 : y2) : (y1 < y2 ? y1 : y2));
-    const int bw = (int)(x0 > x1 ? (x0 > x2 ? x0 : x2) : (x1 > x2 ? x1 : x2));
-    const int bh = (int)(y0 > y1 ? (y0 > y2 ? y0 : y2) : (y1 > y2 ? y1 : y2));
+    const size_t bx = pos[0]<pos[2] ? (pos[0]<pos[4] ? pos[0] : pos[4]) : (pos[2]<pos[4] ? pos[2] : pos[4]);
+    const size_t by = pos[1]<pos[3] ? (pos[1]<pos[5] ? pos[1] : pos[5]) : (pos[3]<pos[5] ? pos[3] : pos[5]);
+    const size_t bw = pos[0]>pos[2] ? (pos[0]>pos[4] ? pos[0] : pos[4]) : (pos[2]>pos[4] ? pos[2] : pos[4]);
+    const size_t bh = pos[1]>pos[3] ? (pos[1]>pos[5] ? pos[1] : pos[5]) : (pos[3]>pos[5] ? pos[3] : pos[5]);
     
-    const int dx01 = (int)x1 -(int)x0;
-    const int dx12 = (int)x2 -(int)x1;
-    const int dx20 = (int)x0 -(int)x2;
-    const int dy01 = (int)y1 -(int)y0;
-    const int dy12 = (int)y2 -(int)y1;
-    const int dy20 = (int)y0 -(int)y2;
+    const int d01[2] = {(int)pos[2] -(int)pos[0], (int)pos[3] -(int)pos[1]};
+    const int d12[2] = {(int)pos[4] -(int)pos[2], (int)pos[5] -(int)pos[3]};
+    const int d20[2] = {(int)pos[0] -(int)pos[4], (int)pos[1] -(int)pos[5]};
 
-    int e01, e12, e20; // Edge functions
-    for (int y = by; y <= bh; y++) {
-	e01 = (bx-(int)x0)*dy01 - (y-(int)y0)*dx01;
-	e12 = (bx-(int)x1)*dy12 - (y-(int)y1)*dx12;
-	e20 = (bx-(int)x2)*dy20 - (y-(int)y2)*dx20;
+    size_t lpos[2];
+    int e01, e12, e20;
+    for (lpos[1] = by; lpos[1] <= bh; lpos[1]++) {
+	e01 = (bx-(int)pos[0])*d01[1] - (lpos[1]-(int)pos[1])*d01[0];
+	e12 = (bx-(int)pos[2])*d12[1] - (lpos[1]-(int)pos[3])*d12[0];
+	e20 = (bx-(int)pos[4])*d20[1] - (lpos[1]-(int)pos[5])*d20[0];
 	
-	for (int x = bx; x <= bw; x++) {
+	for (lpos[0] = bx; lpos[0] <= bw; lpos[0]++) {
 	    if ((e01 >= 0) && (e12 >= 0) && (e20 >= 0))
-		SR_WritePixel(buffer, value, x, y);
+		SR_WritePixel(buffer, (size_t*)&lpos, value);
 	    	    
-	    e01 += dy01;
-	    e12 += dy12;
-	    e20 += dy20;
+	    e01 += d01[1];
+	    e12 += d12[1];
+	    e20 += d20[1];
 	}
     }
 }
 
-void SR_WriteTriangleLine(SR_TextureBuffer *buffer, SR_Texel value,
-			  unsigned int x0, unsigned int y0,
-			  unsigned int x1, unsigned int y1,
-			  unsigned int x2, unsigned int y2)
+void SR_WriteTriangleLine(SR_TextureBuffer *buffer, const size_t *pos, const SR_Texel *value)
 /* Rasterize a triangle as a wireframe. */ 
 {
-    SR_WriteLine(buffer, value, x0, y0, x1, y1);
-    SR_WriteLine(buffer, value, x1, y1, x2, y2);
-    SR_WriteLine(buffer, value, x2, y2, x0, y0);
+    const size_t l01[4] = {pos[0], pos[1], pos[2], pos[3]};
+    const size_t l12[4] = {pos[2], pos[3], pos[4], pos[5]};
+    const size_t l20[4] = {pos[4], pos[5], pos[0], pos[1]};
+    SR_WriteLine(buffer, (size_t*)&l01, value);
+    SR_WriteLine(buffer, (size_t*)&l12, value);
+    SR_WriteLine(buffer, (size_t*)&l20, value);
 }
