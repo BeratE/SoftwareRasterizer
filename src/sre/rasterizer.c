@@ -5,6 +5,9 @@
 void SR_WritePixel(SR_TextureBuffer *buffer, const size_t *pos, const SR_Texel *value)
 /* Writes the desired color values in the (x, y) coordinates of the color buffer. */
 {
+    if (pos[0] >= buffer->width || pos[1] >= buffer->height)
+	return;
+    
     const size_t offset = (buffer->width * pos[1] + pos[0]) * buffer->fsize;
     memcpy(&buffer->values[offset], value, sizeof(&value));
 }
@@ -71,9 +74,9 @@ void SR_WriteTriangle(SR_TextureBuffer *buffer, const size_t *pos, const SR_Texe
     size_t lpos[2];
     int e01, e12, e20;
     for (lpos[1] = by; lpos[1] <= bh; lpos[1]++) {
-	e01 = (bx-(int)pos[0])*d01[1] - (lpos[1]-(int)pos[1])*d01[0];
-	e12 = (bx-(int)pos[2])*d12[1] - (lpos[1]-(int)pos[3])*d12[0];
-	e20 = (bx-(int)pos[4])*d20[1] - (lpos[1]-(int)pos[5])*d20[0];
+	e01 = (bx-pos[0])*d01[1] - (lpos[1]-pos[1])*d01[0];
+	e12 = (bx-pos[2])*d12[1] - (lpos[1]-pos[3])*d12[0];
+	e20 = (bx-pos[4])*d20[1] - (lpos[1]-pos[5])*d20[0];
 	
 	for (lpos[0] = bx; lpos[0] <= bw; lpos[0]++) {
 	    if ((e01 >= 0) && (e12 >= 0) && (e20 >= 0))

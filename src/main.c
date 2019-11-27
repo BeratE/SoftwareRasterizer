@@ -94,13 +94,15 @@ int main ()
 	}
 
 	// Rendering
-	SR_DrawCube();
+	SR_Clear(SR_COLOR_BUFFER_BIT | SR_DEPTH_BUFFER_BIT);
+	SR_DrawArrays(SR_TRIANGLES, 6);
 	
 	// Blit texture content to the screen
-	SR_TextureBuffer buffer = SR_FetchFrameBuffer().colorBuffer;
+	SR_TextureBuffer buffer = SR_Blit(SR_COLOR_BUFFER_BIT);
 	SDL_UpdateTexture(_texture, NULL, &(buffer.values[0]), _texWidth * 4);
 	SDL_RenderCopyEx(_renderer, _texture, NULL, NULL, 0, NULL, SDL_FLIP_VERTICAL);
         SDL_RenderPresent(_renderer);
+	SR_FreeTextureBuffer(&buffer);
 	
 	frame++;
 	runTime += deltaTime;
@@ -110,6 +112,7 @@ int main ()
     printf("Average FPS: %f\n\n", 1.0 / (runTime / frame));
     
     // Shutdown
+    SR_Shutdown();
     SDL_DestroyRenderer(_renderer);
     SDL_DestroyWindow(_window);
     SDL_Quit();

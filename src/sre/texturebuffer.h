@@ -14,7 +14,7 @@ typedef struct {
     unsigned char *values;
 } SR_TextureBuffer;
 
-#define SR_NULLTEXTUREBUFFER (SR_TextureBuffer){.width=0,.height=0,.fsize=0,.values=NULL}
+#define SR_NULL_TEXTUREBUFFER (SR_TextureBuffer){.width=0,.height=0,.fsize=0,.values=NULL}
 
 /* Texture Format */
 // Avaliable Texture formats defined as sizes (in bytes).
@@ -55,6 +55,8 @@ typedef union {
 /* Functions on Texturebuffers */
 SR_TextureBuffer SR_CreateTextureBuffer(unsigned int width, unsigned int height,
 					unsigned char formatsize);
+
+SR_TextureBuffer SR_CopyTextureBuffer(SR_TextureBuffer* buffer);
 
 void SR_FreeTextureBuffer(SR_TextureBuffer *buffer);
 

@@ -20,7 +20,7 @@ find_package(OpenGL REQUIRED)
 find_package(SDL2 REQUIRED)
 
 set (INCS ${INC_DIR} ${SDL2_INCLUDE_DIRS}) # Include directories for compiling
-set (LIBS GL dl ${SDL2_LIBRARIES})         # Libraries to link target against
+set (LIBS GL dl m ${SDL2_LIBRARIES})         # Libraries to link target against
 
 
 ###
