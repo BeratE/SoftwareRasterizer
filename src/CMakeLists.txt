@@ -9,11 +9,12 @@ set (SRE_FILES
   ${SRE_DIR}/texturebuffer.h
   ${SRE_DIR}/rasterizer.h
   ${SRE_DIR}/pipeline.h
+  ${SRE_DIR}/vertexarray.h
   # Source
   ${SRE_DIR}/texturebuffer.c
   ${SRE_DIR}/rasterizer.c
-  ${SRE_DIR}/pipeline.c)
-
+  ${SRE_DIR}/pipeline.c
+  ${SRE_DIR}/vertexarray.c)
 
 ### Application files
 set (APP_FILES

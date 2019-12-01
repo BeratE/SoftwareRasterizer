@@ -98,11 +98,11 @@ int main ()
 	SR_DrawArrays(SR_TRIANGLES, 6);
 	
 	// Blit texture content to the screen
-	SR_TextureBuffer buffer = SR_Blit(SR_COLOR_BUFFER_BIT);
+	SR_TextureBuffer buffer;
+	SR_Blit(SR_COLOR_BUFFER_BIT, &buffer);
 	SDL_UpdateTexture(_texture, NULL, &(buffer.values[0]), _texWidth * 4);
 	SDL_RenderCopyEx(_renderer, _texture, NULL, NULL, 0, NULL, SDL_FLIP_VERTICAL);
         SDL_RenderPresent(_renderer);
-	SR_FreeTextureBuffer(&buffer);
 	
 	frame++;
 	runTime += deltaTime;
