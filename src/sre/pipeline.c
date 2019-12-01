@@ -7,25 +7,25 @@
 
 /* ~Global State~ */
 
-struct vaoList {
+struct listVAO {
     size_t index;
-    SR_VAO* array;
-    struct vaoList* next;
+    SR_VAO* pArrayObject;
+    struct listVAO* pNext;
 };
 
-static struct vaoList *_vaoListHead;
-static SR_VAO *_vaop;
+static struct listVAO *_listHead;
+static SR_VAO *_pCurrVao;
 static size_t _nextVaoIndex;
-
 
 static struct {
     SR_TextureBuffer colorBuffer;
     SR_TextureBuffer depthBuffer;
 } _framebuffer;
 
-/* ~Global State~ */
+/* ~/Global State/~ */
 
-/* Static functions */
+/* ~Static functions~ */
+
 static void perspectiveDivide(double* vertex)
 {
     for (size_t i = 0; i < 4; i++)
@@ -39,17 +39,20 @@ static void viewportTransform(double* vertex, size_t *uv)
     uv[0] = (size_t)(vertex[0] * w/2 + w/2);
     uv[1] = (size_t)(vertex[1] * h/2 + h/2);
 }
-/* Static functions */
 
+/* ~/Static functions/~ */
 
 
 void SR_Init()
 /* Initialize the software rasterization engine. */
 {
     SR_SetViewPort(0, 0);
-    _vaoListHead = NULL;
-    _nextVaoIndex = 1;
-    _vaop = NULL;
+    _listHead = malloc(sizeof(struct listVAO));
+    _listHead->index = 0;
+    _listHead->pNext = NULL;
+    _listHead->pArrayObject = NULL;
+    _pCurrVao = NULL;
+    _nextVaoIndex = 0;
 }
 
 void SR_Shutdown()
@@ -58,16 +61,19 @@ void SR_Shutdown()
     SR_FreeTextureBuffer(&_framebuffer.colorBuffer);
     SR_FreeTextureBuffer(&_framebuffer.depthBuffer);
 
-    struct vaoList *listp = _vaoListHead;
+    // Free Vertex Array Data
+    struct listVAO *listp = _listHead;
     while (listp != NULL) {
-	if (listp->array != NULL) {
-	    free(listp->array->indexBuffer);
-	    free(listp->array->vertexBuffer);
-	    free(listp->array->vertAttribs);
-	    free(listp->array);
-	    listp->array = NULL;
+	if (listp->pArrayObject != NULL) {
+	    free(listp->pArrayObject->indexBuffer);
+	    free(listp->pArrayObject->vertexBuffer);
+	    free(listp->pArrayObject->vertAttribs);
+	    free(listp->pArrayObject);
+	    listp->pArrayObject = NULL;
 	}
-	listp = listp->next;
+	struct listVAO *next = listp->pNext;
+	free(listp);
+	listp = next;
     }
 }
 
@@ -80,7 +86,9 @@ void SR_SetViewPort(int w, int h)
     _framebuffer.depthBuffer = SR_CreateTextureBuffer(w, h, SR_TEXTURE_FORMAT_R8);
 }
 
-void SR_Clear(enum SR_RENDER_TARGET_BIT buffermask) {
+void SR_Clear(enum SR_RENDER_TARGET_BIT buffermask)
+/* Clear the target buffer with zero-values. */
+{
     if (buffermask & SR_COLOR_BUFFER_BIT)
 	SR_ClearTextureBuffer(&_framebuffer.colorBuffer, 0.0);
     if (buffermask & SR_DEPTH_BUFFER_BIT)
@@ -106,46 +114,50 @@ void SR_Blit(enum SR_RENDER_TARGET_BIT bufferbit, SR_TextureBuffer *buffer)
 
 size_t SR_GenVertexArray()
 {
-    struct vaoList* listp = _vaoListHead;
-    while ((listp != NULL) && (listp = listp->next));
+    struct listVAO* listp = _listHead;
+    while ((listp->pNext != NULL) && (listp = listp->pNext));
 
-    listp = malloc(sizeof(struct vaoList));
     listp->index = ++_nextVaoIndex;
-    listp->next = NULL;
     
-    listp->array = malloc(sizeof(SR_VAO));
-    listp->array->indexBuffer = NULL;
-    listp->array->vertexBuffer = NULL;
-    listp->array->vertAttribs = NULL;
-    listp->array->vertAttribCount = 0;
+    listp->pArrayObject = malloc(sizeof(SR_VAO));
+    listp->pArrayObject->indexBuffer = NULL;
+    listp->pArrayObject->vertexBuffer = NULL;
+    listp->pArrayObject->vertAttribs = NULL;
+    listp->pArrayObject->vertAttribCount = 0;
+
+    listp->pNext = malloc(sizeof(struct listVAO));
+    listp->pNext->pArrayObject = NULL;
+    listp->pNext->pNext = NULL;
 
     return listp->index;
 }
 
 void SR_BindVertexArray(size_t handle)
 {
-    struct vaoList* listp = _vaoListHead;
-    while ((listp != NULL) && (listp->index != handle) && (listp = listp->next));
+    struct listVAO* listp = _listHead;
+    while ((listp != NULL) && (listp->index != handle) && (listp = listp->pNext));
     if (listp != NULL)
-	_vaop = listp->array;
+	_pCurrVao = listp->pArrayObject;
     else
-	_vaop = NULL;
+	_pCurrVao = NULL;
 }
 
 void SR_SetBufferData(enum SR_BUFFER_TYPE target, void* data, size_t size)
 {
-    if (_vaop == NULL)
+    if (_pCurrVao == NULL)
 	return;
 
     switch (target) {
     case SR_VERTEX_BUFFER:
-	_vaop->vertexBuffer = malloc(sizeof(double)*size);
-	memcpy(_vaop->vertexBuffer, data, sizeof(double)*size);
+	_pCurrVao->vertexBuffer = malloc(size);
+	memcpy(_pCurrVao->vertexBuffer, data, size);
+	_pCurrVao->vertexBufferSize = size;
 	break;
 	
     case SR_INDEX_BUFFER:
-	_vaop->indexBuffer = malloc(sizeof(size_t)*size);
-	memcpy(_vaop->indexBuffer, data, sizeof(size_t)*size);
+	_pCurrVao->indexBuffer = malloc(size);
+	memcpy(_pCurrVao->indexBuffer, data, size);
+	_pCurrVao->indexBufferSize = size;
 	break;
 	
     default:
@@ -155,69 +167,67 @@ void SR_SetBufferData(enum SR_BUFFER_TYPE target, void* data, size_t size)
 
 void SR_SetVertexAttributeCount(size_t count)
 {
-    if (_vaop == NULL)
+    if (_pCurrVao == NULL)
 	return;
-    if (_vaop->vertAttribs != NULL) {
-	free(_vaop->vertAttribs);
+    if (_pCurrVao->vertAttribs != NULL) {
+	free(_pCurrVao->vertAttribs);
     }
-    _vaop->vertAttribs = malloc(sizeof(SR_VertAttrib)*count);
-    _vaop->vertAttribCount = count;
-	
+    _pCurrVao->vertAttribs = malloc(sizeof(SR_VertAttrib)*count);
+    _pCurrVao->vertAttribCount = count;
 }
 
 void SR_SetVertexAttribute(size_t index, size_t count, size_t stride, size_t offset)
 {
-    if (_vaop == NULL || index > _vaop->vertAttribCount)
+    if (_pCurrVao == NULL || index > _pCurrVao->vertAttribCount)
 	return;
 
-    _vaop->vertAttribs[index] = (SR_VertAttrib) {
+    _pCurrVao->vertAttribs[index] = (SR_VertAttrib) {
         .count = count,
 	.stride=stride,
 	.offset=offset
     };
 }
 
-void SR_DrawArrays(enum SR_PRIMITIVE_TYPE type, size_t count)
+void SR_DrawArrays(enum SR_PRIMITIVE_TYPE type, size_t count, size_t startindex)
 {
-    const double input[] = {-0.5, -0.5, 0.0, 1.0,
-			    -0.5,  0.5, 0.0, 1.0,
-			     0.5, -0.5, 0.0, 1.0,
-			     0.5, -0.5, 0.0, 1.0,
-			    -0.5,  0.5, 0.0, 1.0,
-			     0.5,  0.5, 0.0, 1.0};
+    if (_pCurrVao == NULL ||
+	_pCurrVao->vertexBuffer == NULL ||
+	_pCurrVao->indexBuffer == NULL)
+	return;
 
-    double *data = malloc(sizeof input);
-    memcpy(data, input, sizeof input);
+    double *vertexdata = malloc(_pCurrVao->vertexBufferSize);
+    memcpy(vertexdata, _pCurrVao->vertexBuffer, _pCurrVao->vertexBufferSize);
 
     const size_t nCompPerVert = 4;
     const size_t nVertPerPrim = type;
     //const size_t nDataPoints = sizeof(input) / sizeof(input[0]); 
     //const size_t nVertices = nDataPoints / nCompPerVert;
-    const size_t nVertices = count;
 
-    double* vp = NULL;
+    double* pVertex = NULL;
     size_t windowCord[2* nVertPerPrim];
     
     // Per primitive processing
-    for (size_t i = 0; i < nVertices; i+=nVertPerPrim) {
-
+    size_t index = 0;
+    for (size_t i = startindex; i < (startindex+count); i+=nVertPerPrim) {
 	// Clipping
 	
 	// Perspective divide
-	for (size_t k = 0; k < nVertPerPrim; k++) {
-	    vp = &data[(i+k)*nCompPerVert];
-	    perspectiveDivide(vp);
+	for (size_t k = i; k < i+nVertPerPrim; k++) {
+	    index = _pCurrVao->indexBuffer[k];
+	    pVertex = &vertexdata[index*nCompPerVert];
+	    perspectiveDivide(pVertex);
 	}
 	
 	// Viewport transform
-	for (size_t k = 0; k < nVertPerPrim; k++) {
-	    vp = &data[(i+k)*nCompPerVert];
-	    viewportTransform(vp, &windowCord[k*2]);
+	for (size_t k = i; k < i+nVertPerPrim; k++) {
+	    index = _pCurrVao->indexBuffer[k];
+	    pVertex = &vertexdata[index*nCompPerVert];
+	    viewportTransform(pVertex, &windowCord[(k-i)*2]);
 	}
 	
 	SR_Texel texel = (SR_Texel)(SR_RGBA8){.r=255,.g=100,.b = 100,.a=255};
 	SR_WriteTriangle(&_framebuffer.colorBuffer, windowCord, &texel);
     }
 
-    free(data);
+    free(vertexdata);
 }

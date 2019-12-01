@@ -15,6 +15,8 @@ unsigned int _texWidth = 600;
 unsigned int _texHeight = 600;
 SDL_Texture* _texture = NULL;
 
+size_t _theVao;
+
 static void sdl_die(const char * message)
 /* Print Error Message and Die. */
 {
@@ -60,6 +62,19 @@ void init ()
     init_window();
     SR_Init();
     SR_SetViewPort(_texWidth, _texHeight);
+
+    _theVao = SR_GenVertexArray();
+    SR_BindVertexArray(_theVao);
+
+    double vertices[] = {-0.5, -0.5, 0.0, 1.0,
+			 -0.5,  0.5, 0.0, 1.0,
+			 0.5, -0.5, 0.0, 1.0,
+			 0.5,  0.5, 0.0, 1.0};
+
+    size_t indices[] = {0, 1, 2, 2, 1, 3};
+    
+    SR_SetBufferData(SR_VERTEX_BUFFER, vertices, sizeof(vertices));
+    SR_SetBufferData(SR_INDEX_BUFFER, indices, sizeof(indices));
 }
 
 int main ()
@@ -75,6 +90,7 @@ int main ()
     Uint64 lastTime = SDL_GetPerformanceCounter();
     Uint64 currTime = SDL_GetPerformanceCounter();
     double deltaTime = 0;
+    
     while (isRunning) {
 	lastTime = currTime;
 	currTime = SDL_GetPerformanceCounter();
@@ -92,10 +108,10 @@ int main ()
 		}
 	    }
 	}
-
+	
 	// Rendering
 	SR_Clear(SR_COLOR_BUFFER_BIT | SR_DEPTH_BUFFER_BIT);
-	SR_DrawArrays(SR_TRIANGLES, 6);
+	SR_DrawArrays(SR_TRIANGLES, 6, 0);
 	
 	// Blit texture content to the screen
 	SR_TextureBuffer buffer;
@@ -103,6 +119,7 @@ int main ()
 	SDL_UpdateTexture(_texture, NULL, &(buffer.values[0]), _texWidth * 4);
 	SDL_RenderCopyEx(_renderer, _texture, NULL, NULL, 0, NULL, SDL_FLIP_VERTICAL);
         SDL_RenderPresent(_renderer);
+	SR_FreeTextureBuffer(&buffer);
 	
 	frame++;
 	runTime += deltaTime;

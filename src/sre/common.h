@@ -23,6 +23,7 @@ typedef struct {
 typedef struct {
     double* vertexBuffer;
     size_t* indexBuffer;
+    size_t vertexBufferSize, indexBufferSize;
     SR_VertAttrib* vertAttribs;
     size_t vertAttribCount;
 } SR_VAO;
