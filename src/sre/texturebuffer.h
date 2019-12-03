@@ -56,7 +56,7 @@ typedef union {
 SR_TextureBuffer SR_CreateTextureBuffer(unsigned int width, unsigned int height,
 					unsigned char formatsize);
 
-SR_TextureBuffer SR_CopyTextureBuffer(SR_TextureBuffer* buffer);
+SR_TextureBuffer SR_CopyTextureBuffer(const SR_TextureBuffer* buffer);
 
 void SR_FreeTextureBuffer(SR_TextureBuffer *buffer);
 

@@ -85,6 +85,7 @@ int main ()
     unsigned long frame = 0;
     double runTime = 0;
     int isRunning = 1;
+    SR_TextureBuffer buffer;
     
     // Main loop
     Uint64 lastTime = SDL_GetPerformanceCounter();
@@ -111,15 +112,13 @@ int main ()
 	
 	// Rendering
 	SR_Clear(SR_COLOR_BUFFER_BIT | SR_DEPTH_BUFFER_BIT);
-	SR_DrawArrays(SR_TRIANGLES, 6, 0);
+	SR_DrawArray(SR_TRIANGLES, 6, 0);
 	
 	// Blit texture content to the screen
-	SR_TextureBuffer buffer;
-	SR_Blit(SR_COLOR_BUFFER_BIT, &buffer);
-	SDL_UpdateTexture(_texture, NULL, &(buffer.values[0]), _texWidth * 4);
+	SDL_UpdateTexture(_texture, NULL,
+			  &(SR_GetFrameBuffer().colorBuffer.values[0]), _texWidth * 4);
 	SDL_RenderCopyEx(_renderer, _texture, NULL, NULL, 0, NULL, SDL_FLIP_VERTICAL);
         SDL_RenderPresent(_renderer);
-	SR_FreeTextureBuffer(&buffer);
 	
 	frame++;
 	runTime += deltaTime;

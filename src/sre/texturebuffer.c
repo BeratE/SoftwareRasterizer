@@ -17,7 +17,7 @@ SR_TextureBuffer SR_CreateTextureBuffer(unsigned int width, unsigned int height,
     return b;
 }
 
-SR_TextureBuffer SR_CopyTextureBuffer(SR_TextureBuffer* buffer)
+SR_TextureBuffer SR_CopyTextureBuffer(const SR_TextureBuffer* buffer)
 {
     SR_TextureBuffer b = (SR_TextureBuffer){
         .fsize = buffer->fsize,
