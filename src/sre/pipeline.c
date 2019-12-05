@@ -258,14 +258,15 @@ void SR_DrawArray(enum SR_PRIMITIVE_TYPE prim_type, size_t count, size_t startin
 	// Vertex Attributes
 	for (size_t ai = 0; ai < _pCurrVAO->attributesCount; ai++) {
 	    const SR_VertexAttribute va =_pCurrVAO->attributes[ai];
+	    
 	    const unsigned char *pVertexData = ((unsigned char*)_pCurrVAO->vertexBuffer)
 		+ va.offset
 		+ (elementIndex * va.stride);
 	    
 	    switch (va.count) {
-	    case 4: attribs[ai].vec4f.w = *(((double*)pVertexData)+3);
-	    case 3: attribs[ai].vec3f.z = *(((double*)pVertexData)+2);
-	    case 2: attribs[ai].vec2f.y = *(((double*)pVertexData)+1);
+	    case 4: attribs[ai].vec4f.w = *(((double*)pVertexData)+3); /* FALLTHRU */
+	    case 3: attribs[ai].vec3f.z = *(((double*)pVertexData)+2); /* FALLTHRU */
+	    case 2: attribs[ai].vec2f.y = *(((double*)pVertexData)+1); /* FALLTHRU */
 	    case 1: attribs[ai].vec1f.x = *(((double*)pVertexData)+0);
 		break;
 	    default:
@@ -282,9 +283,9 @@ void SR_DrawArray(enum SR_PRIMITIVE_TYPE prim_type, size_t count, size_t startin
 	vPos.z /= vPos.w;
 	vPos.w = 1.0;
 
+	// Collect vertices for primitive before rasterization
 	vPositions[primVertCount] = vPos;
-
-	if (primVertCount == 2) {
+	if (primVertCount == (nVertPerPrim - 1)) {
 	    // Viewport transform;
 	    for(size_t k = 0; k < nVertPerPrim; k++) {
 		uvWindow[2*k+0] = vPositions[k].x * w/2 + w/2;
