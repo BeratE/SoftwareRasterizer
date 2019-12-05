@@ -4,6 +4,9 @@
 
 #include "texturebuffer.h"
 
+typedef void(*SR_Write)(SR_TextureBuffer*, const size_t*, const SR_Texel*);
+
+
 void SR_WritePixel(SR_TextureBuffer *buffer, const size_t *pos, const SR_Texel *value);
 
 void SR_WriteLine(SR_TextureBuffer *buffer, const size_t *pos, const SR_Texel *value);

@@ -23,20 +23,6 @@ static SR_Shader _cbFragmentShader;
 
 /* ~Static functions~ */
 
-static void perspectiveDivide(double* vertex)
-{
-    for (size_t i = 0; i < 4; i++)
-	vertex[i] /= vertex[3];
-}
-
-static void viewportTransform(double* vertex, size_t *uv)
-{
-    const size_t w = _framebuffer.colorBuffer.width;
-    const size_t h = _framebuffer.colorBuffer.height;
-    uv[0] = (size_t)(vertex[0] * w/2 + w/2);
-    uv[1] = (size_t)(vertex[1] * h/2 + h/2);
-}
-
 /* ~/Static functions/~ */
 
 
@@ -47,6 +33,8 @@ void SR_Init()
     _listHead = NULL;
     _pCurrVAO = NULL;
     _nextListIndex = 0;
+    _cbVertexShader = NULL;
+    _cbFragmentShader = NULL;
 }
 
 void SR_Shutdown()
@@ -216,10 +204,10 @@ void SR_SetVertexAttribute(size_t index, size_t count, size_t stride, size_t off
     };
 }
 
-void SR_BindShader(enum SR_SHADER_TYPE type, SR_Shader shader)
+void SR_BindShader(enum SR_SHADER_TYPE shader_type, SR_Shader shader)
 /* Set the callback to the shader function of the given type. */
 {
-    switch(type) {
+    switch(shader_type) {
     case SR_VERTEX_SHADER:
 	_cbVertexShader = shader;
 	break;
@@ -231,47 +219,81 @@ void SR_BindShader(enum SR_SHADER_TYPE type, SR_Shader shader)
     }
 }
 
-void SR_DrawArray(enum SR_PRIMITIVE_TYPE type, size_t count, size_t startindex)
+void SR_DrawArray(enum SR_PRIMITIVE_TYPE prim_type, size_t count, size_t startindex)
 /* Initiate the pipeline. */
 {
     if (_pCurrVAO == NULL ||
+	_pCurrVAO->indexBuffer == NULL ||
 	_pCurrVAO->vertexBuffer == NULL ||
-	_pCurrVAO->indexBuffer == NULL)
+	_cbVertexShader == NULL)
 	return;
 
-    double *vertexdata = malloc(_pCurrVAO->vertexBufferSize);
-    memcpy(vertexdata, _pCurrVAO->vertexBuffer, _pCurrVAO->vertexBufferSize);
+    const size_t indexBufferCount = _pCurrVAO->indexBufferSize / sizeof(*_pCurrVAO->indexBuffer);
+    if (startindex + count > indexBufferCount) // Index out of bounds
+	return;
 
-    const size_t nCompPerVert = 4;
-    const size_t nVertPerPrim = type;
-    //const size_t nDataPoints = sizeof(input) / sizeof(input[0]); 
-    //const size_t nVertices = nDataPoints / nCompPerVert;
-
-    double* pVertex = NULL;
-    size_t windowCord[2* nVertPerPrim];
-    
-    // Per primitive processing
-    size_t index = 0;
-    for (size_t i = startindex; i < (startindex+count); i+=nVertPerPrim) {
-	// Clipping
-	
-	// Perspective divide
-	for (size_t k = i; k < i+nVertPerPrim; k++) {
-	    index = _pCurrVAO->indexBuffer[k];
-	    pVertex = &vertexdata[index*nCompPerVert];
-	    perspectiveDivide(pVertex);
-	}
-	
-	// Viewport transform
-	for (size_t k = i; k < i+nVertPerPrim; k++) {
-	    index = _pCurrVAO->indexBuffer[k];
-	    pVertex = &vertexdata[index*nCompPerVert];
-	    viewportTransform(pVertex, &windowCord[(k-i)*2]);
-	}
-	
-	SR_Texel texel = (SR_Texel)(SR_RGBA8){.r=255,.g=100,.b = 100,.a=255};
-	SR_WriteTriangle(&_framebuffer.colorBuffer, windowCord, &texel);
+    SR_Write cbWrite = NULL;
+    switch(prim_type) {
+    case SR_POINTS:    cbWrite = &SR_WritePixel; break;
+    case SR_LINES:     cbWrite = &SR_WriteLine; break;
+    case SR_TRIANGLES: cbWrite = &SR_WriteTriangle; break;
+    default:
+	break;
     }
+    if (cbWrite == NULL)
+	return;
 
-    free(vertexdata);
+    const size_t nVertPerPrim = prim_type;
+    const size_t w = _framebuffer.colorBuffer.width;
+    const size_t h = _framebuffer.colorBuffer.height;
+
+    SR_Vec4f vPositions[nVertPerPrim];
+    size_t uvWindow[nVertPerPrim * 2];
+    SR_VecUnion attribs[_pCurrVAO->attributesCount];
+
+    for (size_t i = 0; i < count; i++) {
+	const size_t primVertCount = i % nVertPerPrim;
+	const size_t elementIndex = _pCurrVAO->indexBuffer[startindex + i];
+
+	// Vertex Attributes
+	for (size_t ai = 0; ai < _pCurrVAO->attributesCount; ai++) {
+	    const SR_VertexAttribute va =_pCurrVAO->attributes[ai];
+	    const unsigned char *pVertexData = ((unsigned char*)_pCurrVAO->vertexBuffer)
+		+ va.offset
+		+ (elementIndex * va.stride);
+	    
+	    switch (va.count) {
+	    case 4: attribs[ai].vec4f.w = *(((double*)pVertexData)+3);
+	    case 3: attribs[ai].vec3f.z = *(((double*)pVertexData)+2);
+	    case 2: attribs[ai].vec2f.y = *(((double*)pVertexData)+1);
+	    case 1: attribs[ai].vec1f.x = *(((double*)pVertexData)+0);
+		break;
+	    default:
+		break;
+	    }
+	}
+
+	// Vertex assembly
+	SR_Vec4f vPos = (*_cbVertexShader)(_pCurrVAO->attributesCount, attribs);
+
+	// Perspective divide
+        vPos.x /= vPos.w;
+	vPos.y /= vPos.w;
+	vPos.z /= vPos.w;
+	vPos.w = 1.0;
+
+	vPositions[primVertCount] = vPos;
+
+	if (primVertCount == 2) {
+	    // Viewport transform;
+	    for(size_t k = 0; k < nVertPerPrim; k++) {
+		uvWindow[2*k+0] = vPositions[k].x * w/2 + w/2;
+		uvWindow[2*k+1] = vPositions[k].y * h/2 + h/2;
+	    }
+
+	    // Rasterization
+	    SR_Texel texel = (SR_Texel)(SR_RGBA8){.r=255,.g=100,.b = 100,.a=255};
+	    (*cbWrite)(&_framebuffer.colorBuffer, uvWindow, &texel);
+	}
+    }
 }

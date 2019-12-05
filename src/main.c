@@ -17,6 +17,13 @@ SDL_Texture* _texture = NULL;
 
 size_t _theVao;
 
+SR_Vec4f vertexShader(size_t count, SR_VecUnion *attribs)
+{
+    SR_Vec4f vPos = (SR_Vec4f)attribs[0].vec4f;
+    vPos.w = 1.0;
+    return vPos;
+}
+
 static void sdl_die(const char * message)
 /* Print Error Message and Die. */
 {
@@ -66,15 +73,21 @@ void init ()
     _theVao = SR_GenVertexArray();
     SR_BindVertexArray(_theVao);
 
-    double vertices[] = {-0.5, -0.5, 0.0, 1.0,
-			 -0.5,  0.5, 0.0, 1.0,
-			 0.5, -0.5, 0.0, 1.0,
-			 0.5,  0.5, 0.0, 1.0};
+    double vertices[] = {
+        -0.5, -0.5, 0.0, 1.0, 0.0, 0.0, 
+	-0.5,  0.5, 0.0, 0.0, 1.0, 0.0,
+	0.5, -0.5, 0.0, 0.0, 0.0, 1.0};
 
-    size_t indices[] = {0, 1, 2, 2, 1, 3};
+    size_t indices[] = {0, 1, 2};
     
     SR_SetBufferData(SR_VERTEX_BUFFER, vertices, sizeof(vertices));
     SR_SetBufferData(SR_INDEX_BUFFER, indices, sizeof(indices));
+
+    SR_SetVertexAttributeCount(2);
+    SR_SetVertexAttribute(0, 3, sizeof(double)*6, 0);
+    SR_SetVertexAttribute(1, 3, sizeof(double)*6, sizeof(double)*3);
+
+    SR_BindShader(SR_VERTEX_SHADER, &vertexShader);
 }
 
 int main ()
@@ -85,7 +98,6 @@ int main ()
     unsigned long frame = 0;
     double runTime = 0;
     int isRunning = 1;
-    SR_TextureBuffer buffer;
     
     // Main loop
     Uint64 lastTime = SDL_GetPerformanceCounter();
@@ -112,7 +124,7 @@ int main ()
 	
 	// Rendering
 	SR_Clear(SR_COLOR_BUFFER_BIT | SR_DEPTH_BUFFER_BIT);
-	SR_DrawArray(SR_TRIANGLES, 6, 0);
+	SR_DrawArray(SR_TRIANGLES, 3, 0);
 	
 	// Blit texture content to the screen
 	SDL_UpdateTexture(_texture, NULL,
