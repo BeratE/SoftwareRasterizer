@@ -5,9 +5,6 @@
 void SR_WritePixel(SR_TextureBuffer *buffer, const size_t *pos, const SR_Texel *value)
 /* Writes the desired color values in the (x, y) coordinates of the color buffer. */
 {
-    if (pos[0] >= buffer->width || pos[1] >= buffer->height)
-	return;
-    
     const size_t offset = (buffer->width * pos[1] + pos[0]) * buffer->fsize;
     memcpy(&buffer->values[offset], value, sizeof(&value));
 }
@@ -62,10 +59,15 @@ void SR_WriteLine(SR_TextureBuffer *buffer, const size_t *pos, const SR_Texel *v
 void SR_WriteTriangle(SR_TextureBuffer *buffer, const size_t *pos, const SR_Texel *value)
 /* Triangle rastierization using the pineda algorithm. */
 {
-    const size_t bx = pos[0]<pos[2] ? (pos[0]<pos[4] ? pos[0] : pos[4]) : (pos[2]<pos[4] ? pos[2] : pos[4]);
-    const size_t by = pos[1]<pos[3] ? (pos[1]<pos[5] ? pos[1] : pos[5]) : (pos[3]<pos[5] ? pos[3] : pos[5]);
-    const size_t bw = pos[0]>pos[2] ? (pos[0]>pos[4] ? pos[0] : pos[4]) : (pos[2]>pos[4] ? pos[2] : pos[4]);
-    const size_t bh = pos[1]>pos[3] ? (pos[1]>pos[5] ? pos[1] : pos[5]) : (pos[3]>pos[5] ? pos[3] : pos[5]);
+    // Bounding box
+    size_t bx = pos[0]<pos[2] ? (pos[0]<pos[4] ? pos[0] : pos[4]) : (pos[2]<pos[4] ? pos[2] : pos[4]);
+    size_t by = pos[1]<pos[3] ? (pos[1]<pos[5] ? pos[1] : pos[5]) : (pos[3]<pos[5] ? pos[3] : pos[5]);
+    size_t bw = pos[0]>pos[2] ? (pos[0]>pos[4] ? pos[0] : pos[4]) : (pos[2]>pos[4] ? pos[2] : pos[4]);
+    size_t bh = pos[1]>pos[3] ? (pos[1]>pos[5] ? pos[1] : pos[5]) : (pos[3]>pos[5] ? pos[3] : pos[5]);
+    bx = (bx < buffer->width) ? bx : buffer->width;
+    by = (by < buffer->height) ? by : buffer->height;
+    bw = (bw < buffer->width) ? bw : buffer->width;
+    bh = (bh < buffer->height) ? bh : buffer->height;
     
     const int d01[2] = {(int)pos[2] -(int)pos[0], (int)pos[3] -(int)pos[1]};
     const int d12[2] = {(int)pos[4] -(int)pos[2], (int)pos[5] -(int)pos[3]};

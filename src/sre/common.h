@@ -31,7 +31,7 @@ typedef union {
 } SR_VecUnion;
 
 /* Shaders (size_t attributeCount, SR_Vector* attributes, SR_Vec4f* output) */
-typedef SR_Vec4f(*SR_Shader)(size_t, SR_VecUnion*);
+typedef void(*SR_Shader)(size_t, SR_VecUnion*, SR_Vec4f*);
 
 /* Vertex Array Data*/
 typedef struct {

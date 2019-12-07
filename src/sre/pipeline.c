@@ -121,6 +121,7 @@ size_t SR_GenVertexArray()
 }
 
 void SR_DestroyVertexArray(size_t handle)
+/* Destroy the vertex shader indexed by the given handle. */
 {
     if (_listHead == NULL || handle > _nextListIndex)
 	return;
@@ -243,22 +244,22 @@ void SR_DrawArray(enum SR_PRIMITIVE_TYPE prim_type, size_t count, size_t startin
     if (cbWrite == NULL)
 	return;
 
-    const size_t nVertPerPrim = prim_type;
-    const size_t w = _framebuffer.colorBuffer.width;
-    const size_t h = _framebuffer.colorBuffer.height;
+    const size_t VERT_PER_PRIM = prim_type;
+    const size_t WIDTH  = _framebuffer.colorBuffer.width;
+    const size_t HEIGHT = _framebuffer.colorBuffer.height;
 
-    SR_Vec4f vPositions[nVertPerPrim];
-    size_t uvWindow[nVertPerPrim * 2];
+    size_t uvWindow[VERT_PER_PRIM * 2];
+    SR_Vec4f vPositions[VERT_PER_PRIM];
     SR_VecUnion attribs[_pCurrVAO->attributesCount];
 
     for (size_t i = 0; i < count; i++) {
-	const size_t primVertCount = i % nVertPerPrim;
+	const size_t primVertCount = i % VERT_PER_PRIM;
 	const size_t elementIndex = _pCurrVAO->indexBuffer[startindex + i];
 
 	// Vertex Attributes
 	for (size_t ai = 0; ai < _pCurrVAO->attributesCount; ai++) {
 	    const SR_VertexAttribute va =_pCurrVAO->attributes[ai];
-	    
+	    // Pointer to vertex attribute location
 	    const unsigned char *pVertexData = ((unsigned char*)_pCurrVAO->vertexBuffer)
 		+ va.offset
 		+ (elementIndex * va.stride);
@@ -275,21 +276,24 @@ void SR_DrawArray(enum SR_PRIMITIVE_TYPE prim_type, size_t count, size_t startin
 	}
 
 	// Vertex assembly
-	SR_Vec4f vPos = (*_cbVertexShader)(_pCurrVAO->attributesCount, attribs);
+	SR_Vec4f vPos = (SR_Vec4f){0, 0, 0, 0};
+	(*_cbVertexShader)(_pCurrVAO->attributesCount, attribs, &vPos);
 
 	// Perspective divide
-        vPos.x /= vPos.w;
-	vPos.y /= vPos.w;
-	vPos.z /= vPos.w;
-	vPos.w = 1.0;
+	if (vPos.w != 0) {
+	    vPos.x /= vPos.w;
+	    vPos.y /= vPos.w;
+	    vPos.z /= vPos.w;
+	    vPos.w = 1.0;
+	}
 
 	// Collect vertices for primitive before rasterization
 	vPositions[primVertCount] = vPos;
-	if (primVertCount == (nVertPerPrim - 1)) {
+	if (primVertCount == (VERT_PER_PRIM - 1)) {
 	    // Viewport transform;
-	    for(size_t k = 0; k < nVertPerPrim; k++) {
-		uvWindow[2*k+0] = vPositions[k].x * w/2 + w/2;
-		uvWindow[2*k+1] = vPositions[k].y * h/2 + h/2;
+	    for(size_t k = 0; k < VERT_PER_PRIM; k++) {
+		uvWindow[2*k+0] = vPositions[k].x * WIDTH/2 + WIDTH/2;
+		uvWindow[2*k+1] = vPositions[k].y * HEIGHT/2 + HEIGHT/2;
 	    }
 
 	    // Rasterization

@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <time.h>
 #include <math.h>
+#include <matrix.h>
 #include "SDL2/SDL.h"
-
 #include "config.h"
 #include "sre/texturebuffer.h"
 #include "sre/rasterizer.h"
@@ -15,14 +15,8 @@ unsigned int _texWidth = 600;
 unsigned int _texHeight = 600;
 SDL_Texture* _texture = NULL;
 
+SMOL_Matrix _perspectiveMatrix;
 size_t _theVao;
-
-SR_Vec4f vertexShader(size_t count, SR_VecUnion *attribs)
-{
-    SR_Vec4f vPos = (SR_Vec4f)attribs[0].vec4f;
-    vPos.w = 1.0;
-    return vPos;
-}
 
 static void sdl_die(const char * message)
 /* Print Error Message and Die. */
@@ -64,28 +58,42 @@ void init_window()
     SDL_SetRenderDrawColor(_renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
 }
 
+void vertexShader(size_t count, SR_VecUnion *attribs, SR_Vec4f *vPos)
+{
+    SMOL_Matrix p = (SMOL_Matrix){.nRows = 4, .nCols = 1, .fields = (double*)(&attribs[0].vec3f)};
+    p.fields[3] = 1.0;
+
+    SMOL_Matrix aPos = SMOL_MultiplyMat(&_perspectiveMatrix, &p);
+    memcpy(vPos, aPos.fields, sizeof(double)*4);
+    
+    free(aPos.fields);
+}
+
 void init ()
 {
     init_window();
     SR_Init();
     SR_SetViewPort(_texWidth, _texHeight);
 
+    _perspectiveMatrix = SMOL_PerspectiveMatrix(90, _texWidth/_texHeight, 1.0, 100);
+    
     _theVao = SR_GenVertexArray();
     SR_BindVertexArray(_theVao);
 
     double vertices[] = {
-        -0.5, -0.5, 0.0, 1.0, 0.0, 0.0, 
-	-0.5,  0.5, 0.0, 0.0, 1.0, 0.0,
-	0.5, -0.5, 0.0, 0.0, 0.0, 1.0};
+        -0.5, -0.5, -1.0, 
+	-0.5,  0.5, -3.0,
+	 0.5, -0.5, -1.0,
+ 	 0.5,  0.5, -3.0
+    };
 
-    size_t indices[] = {0, 1, 2};
+    size_t indices[] = {0, 1, 2, 2, 1, 3};
     
     SR_SetBufferData(SR_VERTEX_BUFFER, vertices, sizeof(vertices));
     SR_SetBufferData(SR_INDEX_BUFFER, indices, sizeof(indices));
 
-    SR_SetVertexAttributeCount(2);
-    SR_SetVertexAttribute(0, 3, sizeof(double)*6, 0);
-    SR_SetVertexAttribute(1, 3, sizeof(double)*6, sizeof(double)*3);
+    SR_SetVertexAttributeCount(1);
+    SR_SetVertexAttribute(0, 3, sizeof(double)*3, 0);
 
     SR_BindShader(SR_VERTEX_SHADER, &vertexShader);
 }
@@ -124,7 +132,7 @@ int main ()
 	
 	// Rendering
 	SR_Clear(SR_COLOR_BUFFER_BIT | SR_DEPTH_BUFFER_BIT);
-	SR_DrawArray(SR_TRIANGLES, 3, 0);
+	SR_DrawArray(SR_TRIANGLES, 6, 0);
 	
 	// Blit texture content to the screen
 	SDL_UpdateTexture(_texture, NULL,
@@ -140,6 +148,8 @@ int main ()
     printf("Average FPS: %f\n\n", 1.0 / (runTime / frame));
     
     // Shutdown
+    SMOL_Free(&_perspectiveMatrix);
+    
     SR_Shutdown();
     SDL_DestroyRenderer(_renderer);
     SDL_DestroyWindow(_window);
