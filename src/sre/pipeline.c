@@ -6,8 +6,10 @@
 
 /* ~Global State~ */
 
+// Currently bound framebuffer object
 static SR_FrameBuffer _framebuffer;
 
+// Vertex array objects
 static size_t _nextListIndex;
 static struct listVAO {
     size_t index;
@@ -16,6 +18,7 @@ static struct listVAO {
 } *_listHead;
 static SR_VertexArray *_pCurrVAO;
 
+// Currently bound shader callbacks
 static SR_Shader _cbVertexShader;
 static SR_Shader _cbFragmentShader;
 
@@ -200,8 +203,8 @@ void SR_SetVertexAttribute(size_t index, size_t count, size_t stride, size_t off
 
     _pCurrVAO->attributes[index] = (SR_VertexAttribute) {
         .count = count,
-	.stride=stride,
-	.offset=offset
+	.stride = stride,
+	.offset = offset
     };
 }
 
@@ -233,6 +236,7 @@ void SR_DrawArray(enum SR_PRIMITIVE_TYPE prim_type, size_t count, size_t startin
     if (startindex + count > indexBufferCount) // Index out of bounds
 	return;
 
+    // Determine appropiate write function for primitive type
     SR_Write cbWrite = NULL;
     switch(prim_type) {
     case SR_POINTS:    cbWrite = &SR_WritePixel; break;
@@ -248,15 +252,16 @@ void SR_DrawArray(enum SR_PRIMITIVE_TYPE prim_type, size_t count, size_t startin
     const size_t WIDTH  = _framebuffer.colorBuffer.width;
     const size_t HEIGHT = _framebuffer.colorBuffer.height;
 
-    size_t uvWindow[VERT_PER_PRIM * 2];
-    SR_Vec4f vPositions[VERT_PER_PRIM];
-    SR_VecUnion attribs[_pCurrVAO->attributesCount];
+    int uvWindow[VERT_PER_PRIM * 2]; // Per Patch
+    SR_Vec4f vPositions[VERT_PER_PRIM]; // Per Patch
+    SR_VecUnion attribs[_pCurrVAO->attributesCount]; //Per Vertex
 
+    // Vertex iteration
     for (size_t i = 0; i < count; i++) {
 	const size_t primVertCount = i % VERT_PER_PRIM;
 	const size_t elementIndex = _pCurrVAO->indexBuffer[startindex + i];
 
-	// Vertex Attributes
+	// Collect Vertex Attributes
 	for (size_t ai = 0; ai < _pCurrVAO->attributesCount; ai++) {
 	    const SR_VertexAttribute va =_pCurrVAO->attributes[ai];
 	    // Pointer to vertex attribute location

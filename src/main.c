@@ -58,15 +58,17 @@ void init_window()
     SDL_SetRenderDrawColor(_renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
 }
 
+static size_t frame = 0;
 void vertexShader(size_t count, SR_VecUnion *attribs, SR_Vec4f *vPos)
 {
     SMOL_Matrix p = (SMOL_Matrix){.nRows = 4, .nCols = 1, .fields = (double*)(&attribs[0].vec3f)};
     p.fields[3] = 1.0;
-
-    SMOL_Matrix aPos = SMOL_MultiplyMat(&_perspectiveMatrix, &p);
-    memcpy(vPos, aPos.fields, sizeof(double)*4);
+    //p.fields[0] += sin((frame++/50) * M_PI/180 );
+    //p.fields[1] += cos((frame++/50) * M_PI/180 );
+    //SMOL_MultiplyMat(&_perspectiveMatrix, &p);
+    memcpy(vPos, p.fields, sizeof(double)*4);
     
-    free(aPos.fields);
+    //free(p.fields);
 }
 
 void init ()
@@ -75,7 +77,7 @@ void init ()
     SR_Init();
     SR_SetViewPort(_texWidth, _texHeight);
 
-    _perspectiveMatrix = SMOL_PerspectiveMatrix(90, _texWidth/_texHeight, 1.0, 100);
+    SMOL_PerspectiveMatrix(&_perspectiveMatrix, 90, _texWidth/_texHeight, 1.0, 100);
     
     _theVao = SR_GenVertexArray();
     SR_BindVertexArray(_theVao);
