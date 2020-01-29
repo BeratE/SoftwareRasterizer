@@ -8,15 +8,56 @@
 #include "sre/rasterizer.h"
 #include "sre/pipeline.h"
 
+/* Global state */
 SDL_Window *_window = NULL;
 SDL_Renderer *_renderer = NULL;
 
-unsigned int _texWidth = 600;
-unsigned int _texHeight = 600;
+unsigned int _texWidth = 1600;
+unsigned int _texHeight = 1600;
 SDL_Texture* _texture = NULL;
 
-SMOL_Matrix _perspectiveMatrix;
+SMOL_Matrix _perspectiveMat;
+SMOL_Matrix _viewMat;
+SMOL_Matrix _modelMat;
+size_t _frame = 0;
+
+SR_Pipeline _pipeline;
 size_t _theVao;
+/* ~/Global state/~ */
+
+/* Function definitions */
+void vertexShader(size_t count, SR_Vecf *attribs, SR_Vec4f *vPos);
+void fragmentShader(size_t count, SR_Vecf *attribs, SR_Vec4f *oColor);
+/* ~/Function definitions/~ */
+
+/* Shader functions */
+void vertexShader(size_t count, SR_Vecf *attribs, SR_Vec4f *vPos)
+{
+    SMOL_Matrix p = (SMOL_Matrix){.nRows = 4, .nCols = 1, .fields = (double*)(&attribs[0].vec3f)};
+    p.fields[3] = 1.0;
+    
+    SMOL_Matrix rot;
+    SMOL_RotationMatrix(&rot, (double[]){1.0, 0.0, 0.0}, (_frame)*(M_PI/180));
+
+    SMOL_Matrix mat;
+    SMOL_Matrix eye;
+    SMOL_EyeMatrix(&eye, 4);
+    //SMOL_Multiply(&mat, &_perspectiveMat, &_viewMat);
+    SMOL_MultiplyV(&mat, 3, &rot, &_viewMat, &_perspectiveMat);
+    
+    SMOL_Matrix k;
+    SMOL_Multiply(&k, &mat, &p);
+    memcpy(vPos, k.fields, sizeof(double)*4);
+
+    SMOL_FreeV(1, &k);
+    SMOL_FreeV(2, &mat, &eye);
+}
+
+void fragmentShader(size_t count, SR_Vecf *attribs, SR_Vec4f *fColor)
+{
+}
+/* ~/Shader functions/~ */
+
 
 static void sdl_die(const char * message)
 /* Print Error Message and Die. */
@@ -58,35 +99,24 @@ void init_window()
     SDL_SetRenderDrawColor(_renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
 }
 
-static size_t frame = 0;
-void vertexShader(size_t count, SR_VecUnion *attribs, SR_Vec4f *vPos)
-{
-    SMOL_Matrix p = (SMOL_Matrix){.nRows = 4, .nCols = 1, .fields = (double*)(&attribs[0].vec3f)};
-    p.fields[3] = 1.0;
-    //p.fields[0] += sin((frame++/50) * M_PI/180 );
-    //p.fields[1] += cos((frame++/50) * M_PI/180 );
-    //SMOL_MultiplyMat(&_perspectiveMatrix, &p);
-    memcpy(vPos, p.fields, sizeof(double)*4);
-    
-    //free(p.fields);
-}
-
 void init ()
 {
     init_window();
     SR_Init();
     SR_SetViewPort(_texWidth, _texHeight);
 
-    SMOL_PerspectiveMatrix(&_perspectiveMatrix, 90, _texWidth/_texHeight, 1.0, 100);
+    SMOL_PerspectiveMatrix(&_perspectiveMat, 90, _texWidth/_texHeight, 0.1, 100);
+    SMOL_CameraMatrix(&_viewMat, (double[]){0.0, 0.0, 10.0}, (double[]){0.0, 0.0, 0.0}, (double[]){1.0, 1.0, 0.0});
+    SMOL_EyeMatrix(&_modelMat, 4);
     
     _theVao = SR_GenVertexArray();
     SR_BindVertexArray(_theVao);
 
     double vertices[] = {
-        -0.5, -0.5, -1.0, 
-	-0.5,  0.5, -3.0,
-	 0.5, -0.5, -1.0,
- 	 0.5,  0.5, -3.0
+        -0.5, -0.5, 0.0, 
+	-0.5,  0.5, 0.0,
+	 0.5, -0.5, 0.0,
+ 	 0.5,  0.5, 0.0
     };
 
     size_t indices[] = {0, 1, 2, 2, 1, 3};
@@ -97,7 +127,9 @@ void init ()
     SR_SetVertexAttributeCount(1);
     SR_SetVertexAttribute(0, 3, sizeof(double)*3, 0);
 
-    SR_BindShader(SR_VERTEX_SHADER, &vertexShader);
+    _pipeline.vertexShader = &vertexShader;
+    _pipeline.fragmentShader = &fragmentShader;
+    SR_BindPipeline(&_pipeline);
 }
 
 int main ()
@@ -105,7 +137,6 @@ int main ()
     init();
     
     SDL_Event event;
-    unsigned long frame = 0;
     double runTime = 0;
     int isRunning = 1;
     
@@ -142,15 +173,15 @@ int main ()
 	SDL_RenderCopyEx(_renderer, _texture, NULL, NULL, 0, NULL, SDL_FLIP_VERTICAL);
         SDL_RenderPresent(_renderer);
 	
-	frame++;
+	_frame++;
 	runTime += deltaTime;
     }
 
-    printf("\nNumber of frames: %lu\nTotal Runtime %f\n", frame, runTime);
-    printf("Average FPS: %f\n\n", 1.0 / (runTime / frame));
+    printf("\nNumber of frames: %lu\nTotal Runtime %f\n", _frame, runTime);
+    printf("Average FPS: %f\n\n", 1.0 / (runTime / _frame));
     
     // Shutdown
-    SMOL_Free(&_perspectiveMatrix);
+    SMOL_FreeV(2, &_perspectiveMat, &_viewMat);
     
     SR_Shutdown();
     SDL_DestroyRenderer(_renderer);

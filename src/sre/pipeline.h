@@ -2,7 +2,7 @@
 #define PIPELINE_H
 /* Software rasterization pipeline. */
 
-#include "common.h"
+#include "types.h"
 #include "texturebuffer.h"
 
 void SR_Init();
@@ -21,7 +21,7 @@ void SR_SetBufferData(enum SR_BUFFER_TYPE target, void* data, size_t size);
 void SR_SetVertexAttributeCount(size_t count);
 void SR_SetVertexAttribute(size_t index, size_t count, size_t stride, size_t offset);
 
-void SR_BindShader(enum SR_SHADER_TYPE type, SR_Shader shader);
+void SR_BindPipeline(SR_Pipeline *pipeline);
 
 void SR_DrawArray(enum SR_PRIMITIVE_TYPE type, size_t count, size_t startxindex);
 

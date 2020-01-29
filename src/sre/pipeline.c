@@ -9,25 +9,20 @@
 // Currently bound framebuffer object
 static SR_FrameBuffer _framebuffer;
 
-// Vertex array objects
+// Linked list of Vertex Array objects
 static size_t _nextListIndex;
 static struct listVAO {
     size_t index;
     SR_VertexArray* pArrayObject;
     struct listVAO* pNext;
 } *_listHead;
+// Pointer to currently bound VAO
 static SR_VertexArray *_pCurrVAO;
 
-// Currently bound shader callbacks
-static SR_Shader _cbVertexShader;
-static SR_Shader _cbFragmentShader;
+// Currently bound shader pipeline
+static SR_Pipeline _pipeline;
 
 /* ~/Global State/~ */
-
-/* ~Static functions~ */
-
-/* ~/Static functions/~ */
-
 
 void SR_Init()
 /* Initialize the software rasterization engine. */
@@ -36,8 +31,6 @@ void SR_Init()
     _listHead = NULL;
     _pCurrVAO = NULL;
     _nextListIndex = 0;
-    _cbVertexShader = NULL;
-    _cbFragmentShader = NULL;
 }
 
 void SR_Shutdown()
@@ -208,19 +201,11 @@ void SR_SetVertexAttribute(size_t index, size_t count, size_t stride, size_t off
     };
 }
 
-void SR_BindShader(enum SR_SHADER_TYPE shader_type, SR_Shader shader)
+void SR_BindPipeline(SR_Pipeline *pipeline)
 /* Set the callback to the shader function of the given type. */
 {
-    switch(shader_type) {
-    case SR_VERTEX_SHADER:
-	_cbVertexShader = shader;
-	break;
-    case SR_FRAGMENT_SHADER:
-	_cbFragmentShader = shader;
-	break;
-    default:
-	break;
-    }
+    _pipeline.vertexShader = pipeline->vertexShader;
+    _pipeline.fragmentShader = pipeline->fragmentShader;
 }
 
 void SR_DrawArray(enum SR_PRIMITIVE_TYPE prim_type, size_t count, size_t startindex)
@@ -229,7 +214,7 @@ void SR_DrawArray(enum SR_PRIMITIVE_TYPE prim_type, size_t count, size_t startin
     if (_pCurrVAO == NULL ||
 	_pCurrVAO->indexBuffer == NULL ||
 	_pCurrVAO->vertexBuffer == NULL ||
-	_cbVertexShader == NULL)
+	_pipeline.vertexShader == NULL)
 	return;
 
     const size_t indexBufferCount = _pCurrVAO->indexBufferSize / sizeof(*_pCurrVAO->indexBuffer);
@@ -254,7 +239,7 @@ void SR_DrawArray(enum SR_PRIMITIVE_TYPE prim_type, size_t count, size_t startin
 
     int uvWindow[VERT_PER_PRIM * 2]; // Per Patch
     SR_Vec4f vPositions[VERT_PER_PRIM]; // Per Patch
-    SR_VecUnion attribs[_pCurrVAO->attributesCount]; //Per Vertex
+    SR_Vecf attribs[_pCurrVAO->attributesCount]; //Per Vertex
 
     // Vertex iteration
     for (size_t i = 0; i < count; i++) {
@@ -282,7 +267,7 @@ void SR_DrawArray(enum SR_PRIMITIVE_TYPE prim_type, size_t count, size_t startin
 
 	// Vertex assembly
 	SR_Vec4f vPos = (SR_Vec4f){0, 0, 0, 0};
-	(*_cbVertexShader)(_pCurrVAO->attributesCount, attribs, &vPos);
+	(*_pipeline.vertexShader)(_pCurrVAO->attributesCount, attribs, &vPos);
 
 	// Perspective divide
 	if (vPos.w != 0) {

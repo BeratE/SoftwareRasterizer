@@ -9,6 +9,13 @@ The project consists of three major parts:
 
 I greatly appreciate any critique and pointers concerning programming style and performance or any other mistakes I may have done (does the _const_ qualifier make any sense on pointer parameters? Should I store the matrix in a fixed sized array or an allocated pointer? Does it make any difference? How should I access the matrix elements to prevent page faults? etc.)
 
+## Todo
+* Fragment Shader
+* Proper Clipping
+* Fix Line Rendering Algorithm.
+* Perspective error when object is behind camera.
+* Geometry Anti-Aliasing
+
 ## Testing
 The test framework consists of the CTest utility of CMake together with a small set of macros called minunit. 
 
