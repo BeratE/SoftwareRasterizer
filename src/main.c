@@ -23,6 +23,9 @@ size_t _frame = 0;
 
 SR_Pipeline _pipeline;
 size_t _theVao;
+
+
+Uint64 _lastTime, _currTime;
 /* ~/Global state/~ */
 
 /* Function definitions */
@@ -33,16 +36,26 @@ void fragmentShader(size_t count, SR_Vecf *attribs, SR_Vec4f *oColor);
 /* Shader functions */
 void vertexShader(size_t count, SR_Vecf *attribs, SR_Vec4f *vPos)
 {
+    double t = _currTime/500000000.0;
+    
     SMOL_Matrix p = (SMOL_Matrix){.nRows = 4, .nCols = 1, .fields = (double*)(&attribs[0].vec3f)};
+    p.fields[3] = 1.0;
+
+    SMOL_Scale(&p, 1.0+(0.5*cos(t)));
     p.fields[3] = 1.0;
     
     SMOL_Matrix rot;
-    SMOL_RotationMatrix(&rot, (double[]){1.0, 0.0, 0.0}, (_frame)*(M_PI/180));
-
+    SMOL_RotationMatrix(&rot, (double[]){sin(t), 0.0, cos(t)}, (t)*(M_PI/180));
+    /*
+    SMOL_Free(&_viewMat);
+    SMOL_CameraMatrix(&_viewMat,
+		      (double[]){5.0*cos(t), 0.0, 15.0+5.0*sin(t)},
+		      (double[]){0.0, 0.0, 0.0},
+		      (double[]){0.0, 1.0, 0.0});
+    */
     SMOL_Matrix mat;
     SMOL_Matrix eye;
     SMOL_EyeMatrix(&eye, 4);
-    //SMOL_Multiply(&mat, &_perspectiveMat, &_viewMat);
     SMOL_MultiplyV(&mat, 3, &rot, &_viewMat, &_perspectiveMat);
     
     SMOL_Matrix k;
@@ -112,14 +125,40 @@ void init ()
     _theVao = SR_GenVertexArray();
     SR_BindVertexArray(_theVao);
 
-    double vertices[] = {
-        -0.5, -0.5, 0.0, 
-	-0.5,  0.5, 0.0,
-	 0.5, -0.5, 0.0,
- 	 0.5,  0.5, 0.0
-    };
+     double vertices[] = {
+	     // front
+	     -1.0, -1.0,  1.0,
+	     1.0, -1.0,  1.0,
+	     1.0,  1.0,  1.0,
+	     -1.0,  1.0,  1.0,
+	     // back
+	     -1.0, -1.0, -1.0,
+	     1.0, -1.0, -1.0,
+	     1.0,  1.0, -1.0,
+	     -1.0,  1.0, -1.0
+     };
 
-    size_t indices[] = {0, 1, 2, 2, 1, 3};
+
+     size_t indices[] = {
+	     // front
+	     0, 1, 2,
+	     2, 3, 0,
+	     // right
+	     1, 5, 6,
+	     6, 2, 1,
+	     // back
+	     7, 6, 5,
+	     5, 4, 7,
+	     // left
+	     4, 0, 3,
+	     3, 7, 4,
+	     // bottom
+	     4, 5, 1,
+	     1, 0, 4,
+	     // top
+	     3, 2, 6,
+	     6, 7, 3
+     };
     
     SR_SetBufferData(SR_VERTEX_BUFFER, vertices, sizeof(vertices));
     SR_SetBufferData(SR_INDEX_BUFFER, indices, sizeof(indices));
@@ -141,14 +180,14 @@ int main ()
     int isRunning = 1;
     
     // Main loop
-    Uint64 lastTime = SDL_GetPerformanceCounter();
-    Uint64 currTime = SDL_GetPerformanceCounter();
+    _lastTime = SDL_GetPerformanceCounter();
+    _currTime = SDL_GetPerformanceCounter();
     double deltaTime = 0;
     
     while (isRunning) {
-	lastTime = currTime;
-	currTime = SDL_GetPerformanceCounter();
-        deltaTime = (currTime - lastTime) / (double)SDL_GetPerformanceFrequency();
+	_lastTime = _currTime;
+	_currTime = SDL_GetPerformanceCounter();
+        deltaTime = (_currTime - _lastTime) / (double)SDL_GetPerformanceFrequency();
 	
 	while (SDL_PollEvent(&event)) {
 	    if (event.type == SDL_QUIT) {
@@ -165,7 +204,7 @@ int main ()
 	
 	// Rendering
 	SR_Clear(SR_COLOR_BUFFER_BIT | SR_DEPTH_BUFFER_BIT);
-	SR_DrawArray(SR_TRIANGLES, 6, 0);
+	SR_DrawArray(SR_TRIANGLES, 36, 0);
 	
 	// Blit texture content to the screen
 	SDL_UpdateTexture(_texture, NULL,

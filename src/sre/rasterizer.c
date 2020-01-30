@@ -59,6 +59,8 @@ void SR_WriteLine(SR_TextureBuffer *buffer, const int *pos, const SR_Texel *valu
 void SR_WriteTriangle(SR_TextureBuffer *buffer, const int *pos, const SR_Texel *value)
 /* Triangle rastierization using the pineda algorithm. */
 {
+    SR_Texel random = (SR_Texel)((SR_RGBA8){.r= rand()%255, .g = rand()%255, .b = rand()%255, .a= 255});
+    
     // Bounding box
     const int WIDTH = (int)buffer->width-1;
     const int HEIGHT = (int)buffer->height-1;
@@ -84,7 +86,7 @@ void SR_WriteTriangle(SR_TextureBuffer *buffer, const int *pos, const SR_Texel *
 	
 	for (lpos[0] = bx; lpos[0] <= bw; lpos[0]++) {
 	    if ((e01 >= 0) && (e12 >= 0) && (e20 >= 0))
-		SR_WritePixel(buffer, lpos, value);
+		SR_WritePixel(buffer, lpos, &random);
 	    	    
 	    e01 += d01[1];
 	    e12 += d12[1];

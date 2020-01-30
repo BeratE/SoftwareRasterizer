@@ -9,12 +9,20 @@ The project consists of three major parts:
 
 I greatly appreciate any critique and pointers concerning programming style and performance or any other mistakes I may have done (does the _const_ qualifier make any sense on pointer parameters? Should I store the matrix in a fixed sized array or an allocated pointer? Does it make any difference? How should I access the matrix elements to prevent page faults? etc.)
 
+## Features
+* Triangle Rasterization
+* Trivial Texture Buffers
+* Vertex & Index Buffers
+* Vertex Array Objects and Vertex Attributes
+* Vertex Shader
+
 ## Todo
 * Fragment Shader
-* Proper Clipping
-* Fix Line Rendering Algorithm.
-* Perspective error when object is behind camera.
+* Z-buffering
+* Clipping
+* Texturing
 * Geometry Anti-Aliasing
+* Fix Line Rendering Algorithm
 
 ## Testing
 The test framework consists of the CTest utility of CMake together with a small set of macros called minunit. 
