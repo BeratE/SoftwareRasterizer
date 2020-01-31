@@ -16,16 +16,18 @@ unsigned int _texWidth = 1600;
 unsigned int _texHeight = 1600;
 SDL_Texture* _texture = NULL;
 
+const int NUM_CUBES = 20;
+SMOL_Matrix _cubeMats[20];
+size_t _frame = 0;
+double _runTime = 0;
+Uint64 _lastTime, _currTime;
+
 SMOL_Matrix _perspectiveMat;
 SMOL_Matrix _viewMat;
 SMOL_Matrix _modelMat;
-size_t _frame = 0;
 
 SR_Pipeline _pipeline;
 size_t _theVao;
-
-
-Uint64 _lastTime, _currTime;
 /* ~/Global state/~ */
 
 /* Function definitions */
@@ -41,11 +43,12 @@ void vertexShader(size_t count, SR_Vecf *attribs, SR_Vec4f *vPos)
     SMOL_Matrix p = (SMOL_Matrix){.nRows = 4, .nCols = 1, .fields = (double*)(&attribs[0].vec3f)};
     p.fields[3] = 1.0;
 
-    SMOL_Scale(&p, 1.0+(0.5*cos(t)));
-    p.fields[3] = 1.0;
+    //p.fields[2] *= 1.0+(0.5*cos(t));  
+    //SMOL_Scale(&p, 1.0+(0.5*cos(t)));
+    //p.fields[3] = 1.0;
     
-    SMOL_Matrix rot;
-    SMOL_RotationMatrix(&rot, (double[]){sin(t), 0.0, cos(t)}, (t)*(M_PI/180));
+    //SMOL_Matrix rot;
+    //SMOL_RotationMatrix(&rot, (double[]){sin(t), 0.0, cos(t)}, (t)*(M_PI/180));
     /*
     SMOL_Free(&_viewMat);
     SMOL_CameraMatrix(&_viewMat,
@@ -54,20 +57,21 @@ void vertexShader(size_t count, SR_Vecf *attribs, SR_Vec4f *vPos)
 		      (double[]){0.0, 1.0, 0.0});
     */
     SMOL_Matrix mat;
-    SMOL_Matrix eye;
-    SMOL_EyeMatrix(&eye, 4);
-    SMOL_MultiplyV(&mat, 3, &rot, &_viewMat, &_perspectiveMat);
+    SMOL_MultiplyV(&mat, 3, &_modelMat, &_viewMat, &_perspectiveMat);
     
     SMOL_Matrix k;
     SMOL_Multiply(&k, &mat, &p);
     memcpy(vPos, k.fields, sizeof(double)*4);
 
-    SMOL_FreeV(1, &k);
-    SMOL_FreeV(2, &mat, &eye);
+    SMOL_FreeV(2, &k, &mat);
 }
 
 void fragmentShader(size_t count, SR_Vecf *attribs, SR_Vec4f *fColor)
 {
+    fColor->x = 1.0;
+    fColor->y = 0.5;
+    fColor->z = 0.0;
+    fColor->w = 1.0;
 }
 /* ~/Shader functions/~ */
 
@@ -119,12 +123,21 @@ void init ()
     SR_SetViewPort(_texWidth, _texHeight);
 
     SMOL_PerspectiveMatrix(&_perspectiveMat, 90, _texWidth/_texHeight, 0.1, 100);
-    SMOL_CameraMatrix(&_viewMat, (double[]){0.0, 0.0, 10.0}, (double[]){0.0, 0.0, 0.0}, (double[]){1.0, 1.0, 0.0});
-    SMOL_EyeMatrix(&_modelMat, 4);
+    SMOL_CameraMatrix(&_viewMat,
+		      (double[]){0.0, 0.0, 10.0},
+		      (double[]){0.0, 0.0, 0.0},
+		      (double[]){0.0, 1.0, 0.0});
+
+    for (int i = 0; i < NUM_CUBES; i++) {
+	SMOL_EyeMatrix(&_cubeMats[i], 4);
+	SMOL_SetField(&_cubeMats[i], 0, 3, (rand()%10) * ((rand()%2) ? 1.0 : -1.0));
+	SMOL_SetField(&_cubeMats[i], 1, 3, (rand()%10) * ((rand()%2) ? 1.0 : -1.0));
+	SMOL_SetField(&_cubeMats[i], 2, 3, (rand()%20));
+    }
     
     _theVao = SR_GenVertexArray();
     SR_BindVertexArray(_theVao);
-
+  
      double vertices[] = {
 	     // front
 	     -1.0, -1.0,  1.0,
@@ -137,7 +150,6 @@ void init ()
 	     1.0,  1.0, -1.0,
 	     -1.0,  1.0, -1.0
      };
-
 
      size_t indices[] = {
 	     // front
@@ -176,7 +188,6 @@ int main ()
     init();
     
     SDL_Event event;
-    double runTime = 0;
     int isRunning = 1;
     
     // Main loop
@@ -204,23 +215,39 @@ int main ()
 	
 	// Rendering
 	SR_Clear(SR_COLOR_BUFFER_BIT | SR_DEPTH_BUFFER_BIT);
-	SR_DrawArray(SR_TRIANGLES, 36, 0);
+
+	double t = _currTime/500000000.0;
+	for (int i = 0; i < NUM_CUBES; i++) {
+	    SMOL_Matrix rot;
+	    SMOL_RotationMatrix(&rot, (double[]){sin(t), 0.0, cos(t)}, (t)*(M_PI/180));
+
+	    SMOL_Multiply(&_modelMat, &_cubeMats[i], &rot);
+	    
+	    SR_DrawArray(SR_TRIANGLES, 36, 0);
+
+	    SMOL_FreeV(2, &rot, &_modelMat);
+	}
 	
 	// Blit texture content to the screen
 	SDL_UpdateTexture(_texture, NULL,
-			  &(SR_GetFrameBuffer().colorBuffer.values[0]), _texWidth * 4);
+			  &(SR_GetFrameBuffer().color.values[0]), _texWidth * 4);
 	SDL_RenderCopyEx(_renderer, _texture, NULL, NULL, 0, NULL, SDL_FLIP_VERTICAL);
         SDL_RenderPresent(_renderer);
 	
 	_frame++;
-	runTime += deltaTime;
+	_runTime += deltaTime;
     }
 
-    printf("\nNumber of frames: %lu\nTotal Runtime %f\n", _frame, runTime);
-    printf("Average FPS: %f\n\n", 1.0 / (runTime / _frame));
+    printf("\nNumber of frames: %lu\nTotal Runtime %f\n", _frame, _runTime);
+    printf("Average FPS: %f\n\n", 1.0 / (_runTime / _frame));
     
     // Shutdown
+
+    // Free matrices
     SMOL_FreeV(2, &_perspectiveMat, &_viewMat);
+    for (int i = 0; i < NUM_CUBES; i++) {
+	SMOL_Free(&_cubeMats[i]);
+    }
     
     SR_Shutdown();
     SDL_DestroyRenderer(_renderer);

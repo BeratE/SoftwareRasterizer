@@ -65,6 +65,7 @@ typedef union {
     SR_RGBA16 rgba16;
 } SR_Texel;
 
+
 /* Common vector types. */ 
 typedef struct { double x; }          SR_Vec1f;
 typedef struct { double x, y; }       SR_Vec2f;
@@ -77,6 +78,7 @@ typedef union {
     SR_Vec4f vec4f;
 } SR_Vecf;
 
+/* Shader functions*/
 typedef void(*SR_Shader)(size_t, SR_Vecf*, SR_Vec4f*);
 
 /* Collection of shader objects in a pipeline. */
@@ -100,12 +102,12 @@ typedef struct {
     size_t indexBufferSize;
     size_t attributesCount;
     SR_VertexAttribute* attributes;
-} SR_VertexArray;
+} SR_VertexArray; 
 
 /* Framebuffer */
 typedef struct {
-    SR_TextureBuffer colorBuffer;
-    SR_TextureBuffer depthBuffer;
+    SR_TextureBuffer color;
+    SR_TextureBuffer depth;
 } SR_FrameBuffer;
 
 #endif // TYPES_H

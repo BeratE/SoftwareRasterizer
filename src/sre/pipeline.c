@@ -3,6 +3,7 @@
 #include <matrix.h>
 #include <string.h>
 #include <math.h>
+#include <stdio.h>
 
 /* ~Global State~ */
 
@@ -37,8 +38,8 @@ void SR_Shutdown()
 /* Clean up resources. */
 {
     // Free Framebuffer
-    SR_FreeTextureBuffer(&_framebuffer.colorBuffer);
-    SR_FreeTextureBuffer(&_framebuffer.depthBuffer);
+    SR_FreeTextureBuffer(&_framebuffer.color);
+    SR_FreeTextureBuffer(&_framebuffer.depth);
 
     // Free Vertex Array Data
     struct listVAO *listp = _listHead;
@@ -59,19 +60,19 @@ void SR_Shutdown()
 void SR_SetViewPort(int w, int h)
 /* Set global viewport state parameters. */
 {
-    SR_FreeTextureBuffer(&_framebuffer.colorBuffer);
-    SR_FreeTextureBuffer(&_framebuffer.depthBuffer);
-    _framebuffer.colorBuffer = SR_CreateTextureBuffer(w, h, SR_TEXTURE_FORMAT_RGBA8);
-    _framebuffer.depthBuffer = SR_CreateTextureBuffer(w, h, SR_TEXTURE_FORMAT_R8);
+    SR_FreeTextureBuffer(&_framebuffer.color);
+    SR_FreeTextureBuffer(&_framebuffer.depth);
+    _framebuffer.color = SR_CreateTextureBuffer(w, h, SR_TEXTURE_FORMAT_RGBA8);
+    _framebuffer.depth = SR_CreateTextureBuffer(w, h, SR_TEXTURE_FORMAT_R8);
 }
 
 void SR_Clear(enum SR_RENDER_TARGET_BIT buffermask)
 /* Clear the target buffer with zero-values. */
 {
     if (buffermask & SR_COLOR_BUFFER_BIT)
-	SR_ClearTextureBuffer(&_framebuffer.colorBuffer, 0.0);
+	SR_ClearTextureBuffer(&_framebuffer.color, 0.0);
     if (buffermask & SR_DEPTH_BUFFER_BIT)
-	SR_ClearTextureBuffer(&_framebuffer.depthBuffer, 0.0);
+	SR_ClearTextureBuffer(&_framebuffer.depth, 0.0);
 }
 
 SR_FrameBuffer SR_GetFrameBuffer()
@@ -224,7 +225,7 @@ void SR_DrawArray(enum SR_PRIMITIVE_TYPE prim_type, size_t count, size_t startin
     // Determine appropiate write function for primitive type
     SR_Write cbWrite = NULL;
     switch(prim_type) {
-    case SR_POINTS:    cbWrite = &SR_WritePixel; break;
+	//case SR_POINTS:    cbWrite = &SR_WritePixel; break;
     case SR_LINES:     cbWrite = &SR_WriteLine; break;
     case SR_TRIANGLES: cbWrite = &SR_WriteTriangle; break;
     default:
@@ -234,10 +235,10 @@ void SR_DrawArray(enum SR_PRIMITIVE_TYPE prim_type, size_t count, size_t startin
 	return;
 
     const size_t VERT_PER_PRIM = prim_type;
-    const size_t WIDTH  = _framebuffer.colorBuffer.width;
-    const size_t HEIGHT = _framebuffer.colorBuffer.height;
+    const size_t WIDTH  = _framebuffer.color.width;
+    const size_t HEIGHT = _framebuffer.color.height;
 
-    int uvWindow[VERT_PER_PRIM * 2]; // Per Patch
+    int uvWindow[VERT_PER_PRIM * 3]; // Per Patch
     SR_Vec4f vPositions[VERT_PER_PRIM]; // Per Patch
     SR_Vecf attribs[_pCurrVAO->attributesCount]; //Per Vertex
 
@@ -268,13 +269,11 @@ void SR_DrawArray(enum SR_PRIMITIVE_TYPE prim_type, size_t count, size_t startin
 	// Vertex assembly
 	SR_Vec4f vPos = (SR_Vec4f){0, 0, 0, 0};
 	(*_pipeline.vertexShader)(_pCurrVAO->attributesCount, attribs, &vPos);
-
+	
 	// Perspective divide
 	if (vPos.w != 0) {
 	    vPos.x /= vPos.w;
 	    vPos.y /= vPos.w;
-	    vPos.z /= vPos.w;
-	    vPos.w = 1.0;
 	}
 
 	// Collect vertices for primitive before rasterization
@@ -282,13 +281,13 @@ void SR_DrawArray(enum SR_PRIMITIVE_TYPE prim_type, size_t count, size_t startin
 	if (primVertCount == (VERT_PER_PRIM - 1)) {
 	    // Viewport transform;
 	    for(size_t k = 0; k < VERT_PER_PRIM; k++) {
-		uvWindow[2*k+0] = vPositions[k].x * WIDTH/2 + WIDTH/2;
-		uvWindow[2*k+1] = vPositions[k].y * HEIGHT/2 + HEIGHT/2;
+		uvWindow[3*k+0] = vPositions[k].x * WIDTH/2 + WIDTH/2;
+		uvWindow[3*k+1] = vPositions[k].y * HEIGHT/2 + HEIGHT/2;
+		uvWindow[3*k+2] = -vPositions[k].z;
 	    }
 
 	    // Rasterization
-	    SR_Texel texel = (SR_Texel)(SR_RGBA8){.r=255,.g=100,.b = 100,.a=255};
-	    (*cbWrite)(&_framebuffer.colorBuffer, uvWindow, &texel);
+	    (*cbWrite)(&_framebuffer, uvWindow, _pipeline.fragmentShader);
 	}
     }
 }

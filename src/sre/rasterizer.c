@@ -2,16 +2,23 @@
 #include <string.h>
 #include "texturebuffer.h"
 
-void SR_WritePixel(SR_TextureBuffer *buffer, const int *pos, const SR_Texel *value)
+#include <stdio.h>
+
+void SR_WritePixel(SR_FrameBuffer *buffer, const int *pos, const SR_Texel *value)
 /* Writes the desired color values in the (x, y) coordinates of the color buffer. */
-{
-    const int offset = (buffer->width * pos[1] + pos[0]) * buffer->fsize;
-    memcpy(&buffer->values[offset], value, sizeof(&value));
+{    
+    const int offset = (buffer->color.width * pos[1] + pos[0]);
+    //printf("%d, %d\n", pos[2], buffer->depth.values[offset]);
+    if (pos[2] <  buffer->depth.values[offset]) {
+	buffer->depth.values[offset] = pos[2];
+	memcpy(&buffer->color.values[offset * buffer->color.fsize], value, sizeof(*value));
+    }
 }
 
-void SR_WriteLine(SR_TextureBuffer *buffer, const int *pos, const SR_Texel *value)
+void SR_WriteLine(SR_FrameBuffer *buffer, const int *pos, const SR_Shader shader)
 /* Bresenheim Midpoint Line Rasterization. */
 {
+    /*
     int dx = pos[2] - pos[0];
     int dy = pos[3] - pos[1];
     int inc[2] = {1, 1};
@@ -42,7 +49,7 @@ void SR_WriteLine(SR_TextureBuffer *buffer, const int *pos, const SR_Texel *valu
     // Incremental Rasterization
     int linep[2] = {pos[0], pos[1]};
     while (linep[0] != pos[2] || linep[1] != pos[3]) {
-	SR_WritePixel(buffer, linep, value);
+	SR_WritePixel(buffer, linep, shader);
 	if (d <= 0) {
 	    d += smallerIncr;
 	    linep[0] += inc[0];
@@ -54,39 +61,64 @@ void SR_WriteLine(SR_TextureBuffer *buffer, const int *pos, const SR_Texel *valu
 	    linep[1] += inc[1];
 	}
     }
+    */
 }
 
-void SR_WriteTriangle(SR_TextureBuffer *buffer, const int *pos, const SR_Texel *value)
+void SR_WriteTriangle(SR_FrameBuffer *buffer, const int *pos, const SR_Shader shader)
 /* Triangle rastierization using the pineda algorithm. */
 {
     SR_Texel random = (SR_Texel)((SR_RGBA8){.r= rand()%255, .g = rand()%255, .b = rand()%255, .a= 255});
+
+    const int v0[] = {pos[0], pos[1], pos[2]};
+    const int v1[] = {pos[3], pos[4], pos[5]};
+    const int v2[] = {pos[6], pos[7], pos[8]};
     
     // Bounding box
-    const int WIDTH = (int)buffer->width-1;
-    const int HEIGHT = (int)buffer->height-1;
-    int bx = pos[0]<pos[2] ? (pos[0]<pos[4] ? pos[0] : pos[4]) : (pos[2]<pos[4] ? pos[2] : pos[4]);
-    int by = pos[1]<pos[3] ? (pos[1]<pos[5] ? pos[1] : pos[5]) : (pos[3]<pos[5] ? pos[3] : pos[5]);
-    int bw = pos[0]>pos[2] ? (pos[0]>pos[4] ? pos[0] : pos[4]) : (pos[2]>pos[4] ? pos[2] : pos[4]);
-    int bh = pos[1]>pos[3] ? (pos[1]>pos[5] ? pos[1] : pos[5]) : (pos[3]>pos[5] ? pos[3] : pos[5]);
+    const int WIDTH = (int)buffer->color.width-1;
+    const int HEIGHT = (int)buffer->color.height-1;
+    int bx = v0[0]<v1[0] ? (v0[0]<v2[0] ? v0[0] : v2[0]) : (v1[0]<v2[0] ? v1[0] : v2[0]);
+    int by = v0[1]<v1[1] ? (v0[1]<v2[1] ? v0[1] : v2[1]) : (v1[1]<v2[1] ? v1[1] : v2[1]);
+    int bw = v0[0]>v1[0] ? (v0[0]>v2[0] ? v0[0] : v2[0]) : (v1[0]>v2[0] ? v1[0] : v2[0]);
+    int bh = v0[1]>v1[1] ? (v0[1]>v2[1] ? v0[1] : v2[1]) : (v1[1]>v2[1] ? v1[1] : v2[1]);
     bx = (bx < WIDTH)  ? ((bx < 0) ? 0 : bx) : WIDTH;
     by = (by < HEIGHT) ? ((by < 0) ? 0 : by) : HEIGHT;
     bw = (bw < WIDTH)  ? ((bw < 0) ? 0 : bw) : WIDTH;
     bh = (bh < HEIGHT) ? ((bh < 0) ? 0 : bh) : HEIGHT;
-    
-    const int d01[2] = {(int)pos[2] -(int)pos[0], (int)pos[3] -(int)pos[1]};
-    const int d12[2] = {(int)pos[4] -(int)pos[2], (int)pos[5] -(int)pos[3]};
-    const int d20[2] = {(int)pos[0] -(int)pos[4], (int)pos[1] -(int)pos[5]};
 
-    int lpos[2];
+    const int d02[2] = {v2[0] -v0[0], v2[1] -v0[1]};
+    const int d01[2] = {v1[0] -v0[0], v1[1] -v0[1]};
+    const int d12[2] = {v2[0] -v1[0], v2[1] -v1[1]};
+    const int d20[2] = {v0[0] -v2[0], v0[1] -v2[1]};
+    const double area = d02[0]*d01[1] - d02[1]*d01[0];
+
+    int lpos[3];
+    float lmbd[3];
     int e01, e12, e20;
     for (lpos[1] = by; lpos[1] <= bh; lpos[1]++) {
-	e01 = (bx-pos[0])*d01[1] - (lpos[1]-pos[1])*d01[0];
-	e12 = (bx-pos[2])*d12[1] - (lpos[1]-pos[3])*d12[0];
-	e20 = (bx-pos[4])*d20[1] - (lpos[1]-pos[5])*d20[0];
+	e01 = (bx-v0[0])*d01[1] - (lpos[1]-v0[1])*d01[0]; //v2
+	e12 = (bx-v1[0])*d12[1] - (lpos[1]-v1[1])*d12[0]; //v0
+	e20 = (bx-v2[0])*d20[1] - (lpos[1]-v2[1])*d20[0]; //v1
 	
 	for (lpos[0] = bx; lpos[0] <= bw; lpos[0]++) {
-	    if ((e01 >= 0) && (e12 >= 0) && (e20 >= 0))
-		SR_WritePixel(buffer, lpos, &random);
+	    if ((e01 >= 0) && (e12 >= 0) && (e20 >= 0)) {
+		lmbd[0] = (double)e12/area;
+		lmbd[1] = (double)e20/area;
+		lmbd[2] = (double)e01/area;
+		
+		lpos[2] = lmbd[0]*v0[2]+lmbd[1]*v1[2]+lmbd[2]*v2[2];
+		//printf("%d, %d, %d\n", v0[2], v1[2], v2[2]);
+
+		// Fragment shading
+		SR_Vec4f color = (SR_Vec4f){0.0, 0.0, 0.0, 0.0};
+		(*shader)(0, NULL, &color);
+		SR_Texel texel = (SR_Texel)(SR_RGBA8)
+		    {.r = color.x*255,
+		     .g = color.y*255,
+		     .b = color.z*255,
+		     .a = color.w*255};
+		
+		SR_WritePixel(buffer, lpos, &texel);
+	    }
 	    	    
 	    e01 += d01[1];
 	    e12 += d12[1];
@@ -95,13 +127,13 @@ void SR_WriteTriangle(SR_TextureBuffer *buffer, const int *pos, const SR_Texel *
     }
 }
 
-void SR_WriteTriangleLine(SR_TextureBuffer *buffer, const size_t *pos, const SR_Texel *value)
+void SR_WriteTriangleLine(SR_FrameBuffer *buffer, const size_t *pos, const SR_Shader shader)
 /* Rasterize a triangle as a wireframe. */ 
 {
-    const int l01[4] = {pos[0], pos[1], pos[2], pos[3]};
+    /*const int l01[4] = {pos[0], pos[1], pos[2], pos[3]};
     const int l12[4] = {pos[2], pos[3], pos[4], pos[5]};
     const int l20[4] = {pos[4], pos[5], pos[0], pos[1]};
     SR_WriteLine(buffer, l01, value);
     SR_WriteLine(buffer, l12, value);
-    SR_WriteLine(buffer, l20, value);
+    SR_WriteLine(buffer, l20, value);*/
 }
