@@ -1,6 +1,4 @@
-#include "pipeline.h"
-#include "rasterizer.h"
-#include <matrix.h>
+#include "sre.h"
 #include <string.h>
 #include <math.h>
 #include <stdio.h>
@@ -38,8 +36,8 @@ void SR_Shutdown()
 /* Clean up resources. */
 {
     // Free Framebuffer
-    SR_FreeTextureBuffer(&_framebuffer.color);
-    SR_FreeTextureBuffer(&_framebuffer.depth);
+    SR_TexBufferFree(&_framebuffer.color);
+    SR_TexBufferFree(&_framebuffer.depth);
 
     // Free Vertex Array Data
     struct listVAO *listp = _listHead;
@@ -60,19 +58,19 @@ void SR_Shutdown()
 void SR_SetViewPort(int w, int h)
 /* Set global viewport state parameters. */
 {
-    SR_FreeTextureBuffer(&_framebuffer.color);
-    SR_FreeTextureBuffer(&_framebuffer.depth);
-    _framebuffer.color = SR_CreateTextureBuffer(w, h, SR_TEXTURE_FORMAT_RGBA8);
-    _framebuffer.depth = SR_CreateTextureBuffer(w, h, SR_TEXTURE_FORMAT_R8);
+    SR_TexBufferFree(&_framebuffer.color);
+    SR_TexBufferFree(&_framebuffer.depth);
+    _framebuffer.color = SR_TexBufferCreate(w, h, SR_TEX_FORMAT_RGBA8);
+    _framebuffer.depth = SR_TexBufferCreate(w, h, SR_TEX_FORMAT_R8);
 }
 
 void SR_Clear(enum SR_RENDER_TARGET_BIT buffermask)
 /* Clear the target buffer with zero-values. */
 {
     if (buffermask & SR_COLOR_BUFFER_BIT)
-	SR_ClearTextureBuffer(&_framebuffer.color, 0.0);
+	SR_TexBufferClear(&_framebuffer.color, 0.0);
     if (buffermask & SR_DEPTH_BUFFER_BIT)
-	SR_ClearTextureBuffer(&_framebuffer.depth, 0.0);
+	SR_TexBufferClear(&_framebuffer.depth, 0.0);
 }
 
 SR_FrameBuffer SR_GetFrameBuffer()
@@ -159,21 +157,21 @@ void SR_SetBufferData(enum SR_BUFFER_TYPE target, void* data, size_t size)
     if (_pCurrVAO == NULL)
 	return;
 
+    void** buffer = NULL;
     switch (target) {
     case SR_VERTEX_BUFFER:
-	_pCurrVAO->vertexBuffer = malloc(size);
-	memcpy(_pCurrVAO->vertexBuffer, data, size);
 	_pCurrVAO->vertexBufferSize = size;
+	buffer = (void**)&_pCurrVAO->vertexBuffer;
 	break;
-	
     case SR_INDEX_BUFFER:
-	_pCurrVAO->indexBuffer = malloc(size);
-	memcpy(_pCurrVAO->indexBuffer, data, size);
 	_pCurrVAO->indexBufferSize = size;
+	buffer = (void**)&_pCurrVAO->indexBuffer;
 	break;
-	
-    default:
-	break;
+    }
+    
+    if (buffer != NULL) {
+	(*buffer) = malloc(size);
+	memcpy((*buffer), data, size);
     }
 }
 

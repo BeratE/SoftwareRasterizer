@@ -4,16 +4,14 @@
 #include <matrix.h>
 #include "SDL2/SDL.h"
 #include "config.h"
-#include "sre/texturebuffer.h"
-#include "sre/rasterizer.h"
-#include "sre/pipeline.h"
+#include "sre/sre.h"
 
 /* Global state */
 SDL_Window *_window = NULL;
 SDL_Renderer *_renderer = NULL;
 
-unsigned int _texWidth = 1600;
-unsigned int _texHeight = 1600;
+unsigned int _texWidth = 800;
+unsigned int _texHeight = 800;
 SDL_Texture* _texture = NULL;
 
 const int NUM_CUBES = 20;

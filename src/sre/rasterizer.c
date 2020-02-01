@@ -1,24 +1,23 @@
+#include "sre.h"
 #include <stdlib.h>
 #include <string.h>
-#include "texturebuffer.h"
-
 #include <stdio.h>
 
-void SR_WritePixel(SR_FrameBuffer *buffer, const int *pos, const SR_Texel *value)
+void SR_WritePixel(SR_FrameBuffer *buffer, const int *pos, void* value)
 /* Writes the desired color values in the (x, y) coordinates of the color buffer. */
 {    
     const int offset = (buffer->color.width * pos[1] + pos[0]);
     //printf("%d, %d\n", pos[2], buffer->depth.values[offset]);
     if (pos[2] <  buffer->depth.values[offset]) {
 	buffer->depth.values[offset] = pos[2];
-	memcpy(&buffer->color.values[offset * buffer->color.fsize], value, sizeof(*value));
+	SR_TexBufferWrite(&buffer->color, value, pos[0], pos[1]);
     }
 }
 
 void SR_WriteLine(SR_FrameBuffer *buffer, const int *pos, const SR_Shader shader)
 /* Bresenheim Midpoint Line Rasterization. */
 {
-    /*
+/*
     int dx = pos[2] - pos[0];
     int dy = pos[3] - pos[1];
     int inc[2] = {1, 1};
@@ -61,14 +60,12 @@ void SR_WriteLine(SR_FrameBuffer *buffer, const int *pos, const SR_Shader shader
 	    linep[1] += inc[1];
 	}
     }
-    */
+*/
 }
 
 void SR_WriteTriangle(SR_FrameBuffer *buffer, const int *pos, const SR_Shader shader)
 /* Triangle rastierization using the pineda algorithm. */
 {
-    SR_Texel random = (SR_Texel)((SR_RGBA8){.r= rand()%255, .g = rand()%255, .b = rand()%255, .a= 255});
-
     const int v0[] = {pos[0], pos[1], pos[2]};
     const int v1[] = {pos[3], pos[4], pos[5]};
     const int v2[] = {pos[6], pos[7], pos[8]};
@@ -111,11 +108,10 @@ void SR_WriteTriangle(SR_FrameBuffer *buffer, const int *pos, const SR_Shader sh
 		// Fragment shading
 		SR_Vec4f color = (SR_Vec4f){0.0, 0.0, 0.0, 0.0};
 		(*shader)(0, NULL, &color);
-		SR_Texel texel = (SR_Texel)(SR_RGBA8)
-		    {.r = color.x*255,
-		     .g = color.y*255,
-		     .b = color.z*255,
-		     .a = color.w*255};
+		uint8_t texel[] = {color.x*255,
+				   color.y*255,
+				   color.z*255,
+				   color.w*255};
 		
 		SR_WritePixel(buffer, lpos, &texel);
 	    }
@@ -125,15 +121,4 @@ void SR_WriteTriangle(SR_FrameBuffer *buffer, const int *pos, const SR_Shader sh
 	    e20 += d20[1];
 	}
     }
-}
-
-void SR_WriteTriangleLine(SR_FrameBuffer *buffer, const size_t *pos, const SR_Shader shader)
-/* Rasterize a triangle as a wireframe. */ 
-{
-    /*const int l01[4] = {pos[0], pos[1], pos[2], pos[3]};
-    const int l12[4] = {pos[2], pos[3], pos[4], pos[5]};
-    const int l20[4] = {pos[4], pos[5], pos[0], pos[1]};
-    SR_WriteLine(buffer, l01, value);
-    SR_WriteLine(buffer, l12, value);
-    SR_WriteLine(buffer, l20, value);*/
 }
