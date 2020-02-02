@@ -19,14 +19,59 @@ static struct listVAO {
 static SR_VertexArray *_pCurrVAO;
 
 // Currently bound shader pipeline
-static SR_Pipeline _pipeline;
+SR_Pipeline _pipeline;
 
 /* ~/Global State/~ */
+
+
+/* Static functions */
+
+static inline void collectVertexAttribs(SR_Vecf *attribs, size_t elementIndex)
+{
+    for (size_t ai = 0; ai < _pCurrVAO->attributesCount; ai++) {
+	const SR_VertexAttribute va =_pCurrVAO->attributes[ai];
+	// Pointer to vertex attribute location
+	const uint8_t *pVertexData = ((unsigned char*)_pCurrVAO->vertexBuffer)
+	    + va.offset
+	    + (elementIndex * va.stride);
+	
+	switch (va.count) {
+	case 4: attribs[ai].vec4f.w = *(((double*)pVertexData)+3); /* FALLTHRU */
+	case 3: attribs[ai].vec3f.z = *(((double*)pVertexData)+2); /* FALLTHRU */
+	case 2: attribs[ai].vec2f.y = *(((double*)pVertexData)+1); /* FALLTHRU */
+	case 1: attribs[ai].vec1f.x = *(((double*)pVertexData)+0);
+	    break;
+	default:
+	    break;
+	}
+    }
+}
+
+static inline void perspectiveDivide(SR_Vec4f *p)
+{
+    if (p->w != 0) {
+	p->x /= p->w;
+	p->y /= p->w;
+    }
+}
+
+/* ~/Static functions/~ */
+
+
+/* 
+ * Setup, Shutdown
+ */
 
 void SR_Init()
 /* Initialize the software rasterization engine. */
 {
     SR_SetViewPort(0, 0);
+    
+    _pipeline = (SR_Pipeline){
+	.vertexShader = NULL, .fragmentShader = NULL,
+	.currVertexStageOutput = NULL, .pVertexStageOutput = NULL,
+	.vertexStageOutputCount = 0};
+    
     _listHead = NULL;
     _pCurrVAO = NULL;
     _nextListIndex = 0;
@@ -38,6 +83,9 @@ void SR_Shutdown()
     // Free Framebuffer
     SR_TexBufferFree(&_framebuffer.color);
     SR_TexBufferFree(&_framebuffer.depth);
+
+    if (_pipeline.currVertexStageOutput != NULL)
+	free(_pipeline.currVertexStageOutput);
 
     // Free Vertex Array Data
     struct listVAO *listp = _listHead;
@@ -55,13 +103,24 @@ void SR_Shutdown()
     }
 }
 
+
+/* 
+ * Framebuffer 
+ */
+
+SR_FrameBuffer SR_GetFrameBuffer()
+/* Temporary solution. */
+{
+    return _framebuffer;
+}
+
 void SR_SetViewPort(int w, int h)
 /* Set global viewport state parameters. */
 {
     SR_TexBufferFree(&_framebuffer.color);
     SR_TexBufferFree(&_framebuffer.depth);
     _framebuffer.color = SR_TexBufferCreate(w, h, SR_TEX_FORMAT_RGBA8);
-    _framebuffer.depth = SR_TexBufferCreate(w, h, SR_TEX_FORMAT_R8);
+    _framebuffer.depth = SR_TexBufferCreate(w, h, SR_TEX_FORMAT_32F);
 }
 
 void SR_Clear(enum SR_RENDER_TARGET_BIT buffermask)
@@ -73,11 +132,10 @@ void SR_Clear(enum SR_RENDER_TARGET_BIT buffermask)
 	SR_TexBufferClear(&_framebuffer.depth, 0.0);
 }
 
-SR_FrameBuffer SR_GetFrameBuffer()
-/* Temporary solution. */
-{
-    return _framebuffer;
-}
+
+/* 
+ * Vertex Array Objects
+ */
 
 size_t SR_GenVertexArray()
 /* Generate a new vertex array object and return the object handle. */
@@ -175,6 +233,11 @@ void SR_SetBufferData(enum SR_BUFFER_TYPE target, void* data, size_t size)
     }
 }
 
+
+/*
+ * Vertex Attributes
+ */
+
 void SR_SetVertexAttributeCount(size_t count)
 /* Set the number of vertex attributes passed in the currently bound vao. */
 {
@@ -200,11 +263,40 @@ void SR_SetVertexAttribute(size_t index, size_t count, size_t stride, size_t off
     };
 }
 
-void SR_BindPipeline(SR_Pipeline *pipeline)
+
+/* 
+ * Pipeline
+ */
+
+void SR_BindShader(enum SR_SHADER_TYPE shader_type, SR_ShaderCB shader)
 /* Set the callback to the shader function of the given type. */
 {
-    _pipeline.vertexShader = pipeline->vertexShader;
-    _pipeline.fragmentShader = pipeline->fragmentShader;
+    switch (shader_type) {
+    case SR_VERTEX_SHADER:
+	_pipeline.vertexShader = shader;
+	break;
+    case SR_FRAGMENT_SHADER:
+	_pipeline.fragmentShader = shader;
+	break;
+    };
+}
+
+void SR_SetVertexStageOutputCount(size_t count)
+/* Set the number of output values of the vertex shader stage. */
+{
+    if (_pipeline.currVertexStageOutput != NULL)
+	free(_pipeline.currVertexStageOutput);
+
+    _pipeline.vertexStageOutputCount = count;
+    _pipeline.currVertexStageOutput = malloc(count * sizeof(SR_Vecf));
+}
+
+void SR_SetVertexStageOutput(size_t index, SR_Vecf* value)
+/* Set the value of the vertex stage output at the given index. */
+{
+    if (_pipeline.currVertexStageOutput == NULL)
+	return;
+    memcpy(&_pipeline.currVertexStageOutput[index], value, sizeof(*value));
 }
 
 void SR_DrawArray(enum SR_PRIMITIVE_TYPE prim_type, size_t count, size_t startindex)
@@ -233,59 +325,52 @@ void SR_DrawArray(enum SR_PRIMITIVE_TYPE prim_type, size_t count, size_t startin
 	return;
 
     const size_t VERT_PER_PRIM = prim_type;
+    const size_t VERT_OUTPUT_N = _pipeline.vertexStageOutputCount;
     const size_t WIDTH  = _framebuffer.color.width;
     const size_t HEIGHT = _framebuffer.color.height;
 
-    int uvWindow[VERT_PER_PRIM * 3]; // Per Patch
-    SR_Vec4f vPositions[VERT_PER_PRIM]; // Per Patch
-    SR_Vecf attribs[_pCurrVAO->attributesCount]; //Per Vertex
+    // Per Patch
+    int patchScreenCoords[VERT_PER_PRIM * 3];
+    SR_Vec4f patchVertPos[VERT_PER_PRIM];     
+    SR_Vecf patchVertStageOutput[VERT_PER_PRIM][VERT_OUTPUT_N];
+    _pipeline.pVertexStageOutput = (SR_Vecf*)patchVertStageOutput;
+    //Per Vertex
+    SR_Vecf vertAttribs[_pCurrVAO->attributesCount]; 
 
     // Vertex iteration
     for (size_t i = 0; i < count; i++) {
-	const size_t primVertCount = i % VERT_PER_PRIM;
+	const size_t patchVertNum = i % VERT_PER_PRIM;
 	const size_t elementIndex = _pCurrVAO->indexBuffer[startindex + i];
 
-	// Collect Vertex Attributes
-	for (size_t ai = 0; ai < _pCurrVAO->attributesCount; ai++) {
-	    const SR_VertexAttribute va =_pCurrVAO->attributes[ai];
-	    // Pointer to vertex attribute location
-	    const unsigned char *pVertexData = ((unsigned char*)_pCurrVAO->vertexBuffer)
-		+ va.offset
-		+ (elementIndex * va.stride);
-	    
-	    switch (va.count) {
-	    case 4: attribs[ai].vec4f.w = *(((double*)pVertexData)+3); /* FALLTHRU */
-	    case 3: attribs[ai].vec3f.z = *(((double*)pVertexData)+2); /* FALLTHRU */
-	    case 2: attribs[ai].vec2f.y = *(((double*)pVertexData)+1); /* FALLTHRU */
-	    case 1: attribs[ai].vec1f.x = *(((double*)pVertexData)+0);
-		break;
-	    default:
-		break;
-	    }
-	}
+	// Collect vertex attributes from buffer
+	collectVertexAttribs(vertAttribs, elementIndex);
 
 	// Vertex assembly
 	SR_Vec4f vPos = (SR_Vec4f){0, 0, 0, 0};
-	(*_pipeline.vertexShader)(_pCurrVAO->attributesCount, attribs, &vPos);
-	
-	// Perspective divide
-	if (vPos.w != 0) {
-	    vPos.x /= vPos.w;
-	    vPos.y /= vPos.w;
-	}
+	(*_pipeline.vertexShader)(_pCurrVAO->attributesCount, vertAttribs, &vPos);
 
-	// Collect vertices for primitive before rasterization
-	vPositions[primVertCount] = vPos;
-	if (primVertCount == (VERT_PER_PRIM - 1)) {
+	// Collect vertex stage output
+	memcpy(&patchVertStageOutput[patchVertNum][0],
+	       _pipeline.currVertexStageOutput, sizeof(SR_Vecf) * VERT_OUTPUT_N);
+
+	// Perspective divide
+	perspectiveDivide(&vPos);
+	
+	// Collect patch vertices
+	patchVertPos[patchVertNum] = vPos;
+	if (patchVertNum == (VERT_PER_PRIM - 1)) {
 	    // Viewport transform;
 	    for(size_t k = 0; k < VERT_PER_PRIM; k++) {
-		uvWindow[3*k+0] = vPositions[k].x * WIDTH/2 + WIDTH/2;
-		uvWindow[3*k+1] = vPositions[k].y * HEIGHT/2 + HEIGHT/2;
-		uvWindow[3*k+2] = -vPositions[k].z;
+		patchScreenCoords[3*k+0] = patchVertPos[k].x * WIDTH/2 + WIDTH/2;
+		patchScreenCoords[3*k+1] = patchVertPos[k].y * HEIGHT/2 + HEIGHT/2;
+		patchScreenCoords[3*k+2] = -patchVertPos[k].z;
 	    }
 
 	    // Rasterization
-	    (*cbWrite)(&_framebuffer, uvWindow, _pipeline.fragmentShader);
+	    (*cbWrite)(&_framebuffer, patchScreenCoords, &_pipeline);
 	}
     }
+
+    // Cleanup
+    _pipeline.pVertexStageOutput = NULL;
 }

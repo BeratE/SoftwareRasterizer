@@ -14,8 +14,8 @@ unsigned int _texWidth = 800;
 unsigned int _texHeight = 800;
 SDL_Texture* _texture = NULL;
 
-const int NUM_CUBES = 20;
-SMOL_Matrix _cubeMats[20];
+const int NUM_CUBES = 1;
+SMOL_Matrix _cubeMats[1];
 size_t _frame = 0;
 double _runTime = 0;
 Uint64 _lastTime, _currTime;
@@ -24,7 +24,6 @@ SMOL_Matrix _perspectiveMat;
 SMOL_Matrix _viewMat;
 SMOL_Matrix _modelMat;
 
-SR_Pipeline _pipeline;
 size_t _theVao;
 /* ~/Global state/~ */
 
@@ -36,24 +35,14 @@ void fragmentShader(size_t count, SR_Vecf *attribs, SR_Vec4f *oColor);
 /* Shader functions */
 void vertexShader(size_t count, SR_Vecf *attribs, SR_Vec4f *vPos)
 {
+    SR_Vec3f aPos = attribs[0].vec3f;
+    SR_Vec3f aColor = attribs[1].vec3f;
+    
     double t = _currTime/500000000.0;
     
-    SMOL_Matrix p = (SMOL_Matrix){.nRows = 4, .nCols = 1, .fields = (double*)(&attribs[0].vec3f)};
+    SMOL_Matrix p = (SMOL_Matrix){.nRows = 4, .nCols = 1, .fields = (double*)&aPos};
     p.fields[3] = 1.0;
-
-    //p.fields[2] *= 1.0+(0.5*cos(t));  
-    //SMOL_Scale(&p, 1.0+(0.5*cos(t)));
-    //p.fields[3] = 1.0;
-    
-    //SMOL_Matrix rot;
-    //SMOL_RotationMatrix(&rot, (double[]){sin(t), 0.0, cos(t)}, (t)*(M_PI/180));
-    /*
-    SMOL_Free(&_viewMat);
-    SMOL_CameraMatrix(&_viewMat,
-		      (double[]){5.0*cos(t), 0.0, 15.0+5.0*sin(t)},
-		      (double[]){0.0, 0.0, 0.0},
-		      (double[]){0.0, 1.0, 0.0});
-    */
+   
     SMOL_Matrix mat;
     SMOL_MultiplyV(&mat, 3, &_modelMat, &_viewMat, &_perspectiveMat);
     
@@ -61,14 +50,14 @@ void vertexShader(size_t count, SR_Vecf *attribs, SR_Vec4f *vPos)
     SMOL_Multiply(&k, &mat, &p);
     memcpy(vPos, k.fields, sizeof(double)*4);
 
+    SR_SetVertexStageOutput(0, &aColor);
+
     SMOL_FreeV(2, &k, &mat);
 }
 
 void fragmentShader(size_t count, SR_Vecf *attribs, SR_Vec4f *fColor)
 {
-    fColor->x = 1.0;
-    fColor->y = 0.5;
-    fColor->z = 0.0;
+    *fColor = attribs[0].vec4f;
     fColor->w = 1.0;
 }
 /* ~/Shader functions/~ */
@@ -128,25 +117,25 @@ void init ()
 
     for (int i = 0; i < NUM_CUBES; i++) {
 	SMOL_EyeMatrix(&_cubeMats[i], 4);
-	SMOL_SetField(&_cubeMats[i], 0, 3, (rand()%10) * ((rand()%2) ? 1.0 : -1.0));
-	SMOL_SetField(&_cubeMats[i], 1, 3, (rand()%10) * ((rand()%2) ? 1.0 : -1.0));
-	SMOL_SetField(&_cubeMats[i], 2, 3, (rand()%20));
+	/* SMOL_SetField(&_cubeMats[i], 0, 3, (rand()%10) * ((rand()%2) ? 1.0 : -1.0)); */
+	/* SMOL_SetField(&_cubeMats[i], 1, 3, (rand()%10) * ((rand()%2) ? 1.0 : -1.0)); */
+	/* SMOL_SetField(&_cubeMats[i], 2, 3, (rand()%20)); */
     }
     
     _theVao = SR_GenVertexArray();
     SR_BindVertexArray(_theVao);
   
      double vertices[] = {
-	     // front
-	     -1.0, -1.0,  1.0,
-	     1.0, -1.0,  1.0,
-	     1.0,  1.0,  1.0,
-	     -1.0,  1.0,  1.0,
-	     // back
-	     -1.0, -1.0, -1.0,
-	     1.0, -1.0, -1.0,
-	     1.0,  1.0, -1.0,
-	     -1.0,  1.0, -1.0
+	 // front          // color
+	 -1.0, -1.0,  1.0, 0.0, 0.0, 1.0,
+	  1.0, -1.0,  1.0, 0.0, 1.0, 0.0,
+	  1.0,  1.0,  1.0, 0.0, 1.0, 1.0,
+	 -1.0,  1.0,  1.0, 1.0, 0.0, 0.0,
+	 // back
+	 -1.0, -1.0, -1.0, 1.0, 0.0, 1.0,
+	  1.0, -1.0, -1.0, 1.0, 1.0, 0.0,
+	  1.0,  1.0, -1.0, 1.0, 1.0, 1.0,
+	 -1.0,  1.0, -1.0, 0.5, 0.5, 0.5
      };
 
      size_t indices[] = {
@@ -173,12 +162,14 @@ void init ()
     SR_SetBufferData(SR_VERTEX_BUFFER, vertices, sizeof(vertices));
     SR_SetBufferData(SR_INDEX_BUFFER, indices, sizeof(indices));
 
-    SR_SetVertexAttributeCount(1);
-    SR_SetVertexAttribute(0, 3, sizeof(double)*3, 0);
+    SR_SetVertexAttributeCount(2);
+    SR_SetVertexAttribute(0, 3, sizeof(double)*6, 0);
+    SR_SetVertexAttribute(1, 3, sizeof(double)*6, sizeof(double)*3);
 
-    _pipeline.vertexShader = &vertexShader;
-    _pipeline.fragmentShader = &fragmentShader;
-    SR_BindPipeline(&_pipeline);
+    SR_BindShader(SR_VERTEX_SHADER, &vertexShader);
+    SR_BindShader(SR_FRAGMENT_SHADER, &fragmentShader);
+
+    SR_SetVertexStageOutputCount(1);
 }
 
 int main ()
@@ -216,14 +207,14 @@ int main ()
 
 	double t = _currTime/500000000.0;
 	for (int i = 0; i < NUM_CUBES; i++) {
-	    SMOL_Matrix rot;
-	    SMOL_RotationMatrix(&rot, (double[]){sin(t), 0.0, cos(t)}, (t)*(M_PI/180));
+	    //SMOL_Matrix rot;
+	    //SMOL_RotationMatrix(&rot, (double[]){sin(t), 0.0, cos(t)}, (t)*(M_PI/180));
 
-	    SMOL_Multiply(&_modelMat, &_cubeMats[i], &rot);
-	    
+	    //SMOL_Multiply(&_modelMat, &_cubeMats[i], &rot);
+	    _modelMat = _cubeMats[i];
 	    SR_DrawArray(SR_TRIANGLES, 36, 0);
 
-	    SMOL_FreeV(2, &rot, &_modelMat);
+	    //SMOL_FreeV(2, &rot, &_modelMat);
 	}
 	
 	// Blit texture content to the screen

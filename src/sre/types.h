@@ -43,7 +43,6 @@ typedef struct {
 #define SR_TEX_FORMAT_RGBA16 8
 #define SR_TEX_FORMAT_32F    (sizeof(float))
 
-
 // Common vector types
 typedef struct { double x; }          SR_Vec1f;
 typedef struct { double x, y; }       SR_Vec2f;
@@ -80,15 +79,20 @@ typedef struct {
 } SR_FrameBuffer;
 
 // Shader functions
-typedef void(*SR_Shader)(size_t, SR_Vecf*, SR_Vec4f*);
+typedef void(*SR_ShaderCB)(size_t attributeCount,
+			 SR_Vecf* attributes,
+			 SR_Vec4f* output);
 
 // Collection of shader objects in a pipeline
 typedef struct {
-    SR_Shader vertexShader;
-    SR_Shader fragmentShader;
+    SR_ShaderCB vertexShader; // Currently bound vertex shader callback
+    SR_ShaderCB fragmentShader; // Currently bound fragment shader callback
+    size_t vertexStageOutputCount; // Number of vertex output elements
+    SR_Vecf *currVertexStageOutput; // Output of single vertex shader
+    SR_Vecf *pVertexStageOutput; // Pointer to collected vertex output
 } SR_Pipeline;
 
 // Write functions
-typedef void(*SR_Write)(SR_FrameBuffer*, const int*, const SR_Shader shader);
+typedef void(*SR_Write)(SR_FrameBuffer *buffer, const int *pos, SR_Pipeline *pipeline);
 
 #endif // TYPES_H

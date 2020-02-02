@@ -24,7 +24,9 @@ void SR_SetVertexAttributeCount(size_t count);
 void SR_SetVertexAttribute(size_t index, size_t count, size_t stride, size_t offset);
 
 // Pipeline
-void SR_BindPipeline(SR_Pipeline *pipeline);
+void SR_BindShader(enum SR_SHADER_TYPE shader_type, SR_ShaderCB shader);
+void SR_SetVertexStageOutputCount(size_t count);
+void SR_SetVertexStageOutput(size_t index, SR_Vecf* value);
 void SR_DrawArray(enum SR_PRIMITIVE_TYPE type, size_t count, size_t startxindex);
 
 // Texture buffers
@@ -38,7 +40,7 @@ size_t SR_TexBufferSize(SR_TexBuffer2D *buffer);
 
 // Rasterization
 void SR_WritePixel(SR_FrameBuffer *buffer, const int *pos, void* value);
-void SR_WriteLine(SR_FrameBuffer *buffer, const int *pos, const SR_Shader shader);
-void SR_WriteTriangle(SR_FrameBuffer *buffer, const int *pos, const SR_Shader shader);
+void SR_WriteLine(SR_FrameBuffer *buffer, const int *pos, SR_Pipeline* pipeline);
+void SR_WriteTriangle(SR_FrameBuffer *buffer, const int *pos, SR_Pipeline* pipeline);
 
 #endif // SRE_H

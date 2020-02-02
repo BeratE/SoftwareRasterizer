@@ -5,7 +5,7 @@
 
 void SR_WritePixel(SR_FrameBuffer *buffer, const int *pos, void* value)
 /* Writes the desired color values in the (x, y) coordinates of the color buffer. */
-{    
+{   
     const int offset = (buffer->color.width * pos[1] + pos[0]);
     //printf("%d, %d\n", pos[2], buffer->depth.values[offset]);
     if (pos[2] <  buffer->depth.values[offset]) {
@@ -14,7 +14,7 @@ void SR_WritePixel(SR_FrameBuffer *buffer, const int *pos, void* value)
     }
 }
 
-void SR_WriteLine(SR_FrameBuffer *buffer, const int *pos, const SR_Shader shader)
+void SR_WriteLine(SR_FrameBuffer *buffer, const int *pos, SR_Pipeline* pipeline)
 /* Bresenheim Midpoint Line Rasterization. */
 {
 /*
@@ -63,7 +63,7 @@ void SR_WriteLine(SR_FrameBuffer *buffer, const int *pos, const SR_Shader shader
 */
 }
 
-void SR_WriteTriangle(SR_FrameBuffer *buffer, const int *pos, const SR_Shader shader)
+void SR_WriteTriangle(SR_FrameBuffer *buffer, const int *pos, SR_Pipeline* pipeline)
 /* Triangle rastierization using the pineda algorithm. */
 {
     const int v0[] = {pos[0], pos[1], pos[2]};
@@ -88,9 +88,17 @@ void SR_WriteTriangle(SR_FrameBuffer *buffer, const int *pos, const SR_Shader sh
     const int d20[2] = {v0[0] -v2[0], v0[1] -v2[1]};
     const double area = d02[0]*d01[1] - d02[1]*d01[0];
 
+    // Atrribute interpolation
+    const size_t ATTRIB_COUNT = pipeline->vertexStageOutputCount;
+    const size_t ATTRIB_SIZE = sizeof(SR_Vecf);
+    const size_t VERT_OFFSET = ATTRIB_COUNT * ATTRIB_SIZE;
+
+    SR_Vecf attribs[ATTRIB_COUNT];
+    
     int lpos[3];
     float lmbd[3];
     int e01, e12, e20;
+    
     for (lpos[1] = by; lpos[1] <= bh; lpos[1]++) {
 	e01 = (bx-v0[0])*d01[1] - (lpos[1]-v0[1])*d01[0]; //v2
 	e12 = (bx-v1[0])*d12[1] - (lpos[1]-v1[1])*d12[0]; //v0
@@ -103,15 +111,32 @@ void SR_WriteTriangle(SR_FrameBuffer *buffer, const int *pos, const SR_Shader sh
 		lmbd[2] = (double)e01/area;
 		
 		lpos[2] = lmbd[0]*v0[2]+lmbd[1]*v1[2]+lmbd[2]*v2[2];
-		//printf("%d, %d, %d\n", v0[2], v1[2], v2[2]);
 
+		// Attribute interpolation
+		for (size_t i = 0; i < ATTRIB_COUNT; i++) {
+		    const SR_Vec4f aiV0 = pipeline->currVertexStageOutput[(ATTRIB_COUNT*0) + i].vec4f;
+		    const SR_Vec4f aiV1 = pipeline->currVertexStageOutput[(ATTRIB_COUNT*1) + i].vec4f;
+		    const SR_Vec4f aiV2 = pipeline->currVertexStageOutput[(ATTRIB_COUNT*2) + i].vec4f;
+		    attribs[i] = (SR_Vecf)aiV0;
+		    /* attribs[i] = (SR_Vecf)(SR_Vec4f){ */
+		    /* 	.x = lmbd[0]*aiV0.x + lmbd[1]*aiV1.x + lmbd[2]*aiV2.x, */
+		    /* 	.y = lmbd[0]*aiV0.y + lmbd[1]*aiV1.y + lmbd[2]*aiV2.y, */
+		    /* 	.z = lmbd[0]*aiV0.z + lmbd[1]*aiV1.z + lmbd[2]*aiV2.z, */
+		    /* 	.w = lmbd[0]*aiV0.w + lmbd[1]*aiV1.w + lmbd[2]*aiV2.w, */
+		    /* }; */
+		}
+		
 		// Fragment shading
 		SR_Vec4f color = (SR_Vec4f){0.0, 0.0, 0.0, 0.0};
-		(*shader)(0, NULL, &color);
+		(*(pipeline->fragmentShader))(ATTRIB_COUNT, attribs, &color);
+		//SR_Vec4f color = pipeline->pVertexStageOutput[0].vec4f;
+		//color.w = 1.0;
 		uint8_t texel[] = {color.x*255,
 				   color.y*255,
 				   color.z*255,
 				   color.w*255};
+
+
 		
 		SR_WritePixel(buffer, lpos, &texel);
 	    }
