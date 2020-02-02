@@ -111,7 +111,7 @@ void init ()
 
     SMOL_PerspectiveMatrix(&_perspectiveMat, 90, _texWidth/_texHeight, 0.1, 100);
     SMOL_CameraMatrix(&_viewMat,
-		      (double[]){0.0, 0.0, 10.0},
+		      (double[]){0.0, 0.0, 5.0},
 		      (double[]){0.0, 0.0, 0.0},
 		      (double[]){0.0, 1.0, 0.0});
 
@@ -127,15 +127,15 @@ void init ()
   
      double vertices[] = {
 	 // front          // color
-	 -1.0, -1.0,  1.0, 0.0, 0.0, 1.0,
-	  1.0, -1.0,  1.0, 0.0, 1.0, 0.0,
-	  1.0,  1.0,  1.0, 0.0, 1.0, 1.0,
-	 -1.0,  1.0,  1.0, 1.0, 0.0, 0.0,
+	 -1.0, -1.0,  1.0, 1.0, 0.25, 0.5,
+	  1.0, -1.0,  1.0, 1.0, 0.45, 0.0,
+	  1.0,  1.0,  1.0, 1.0, 0.75, 0.5,
+	 -1.0,  1.0,  1.0, 1.0, 0.10, 0.0,
 	 // back
-	 -1.0, -1.0, -1.0, 1.0, 0.0, 1.0,
-	  1.0, -1.0, -1.0, 1.0, 1.0, 0.0,
-	  1.0,  1.0, -1.0, 1.0, 1.0, 1.0,
-	 -1.0,  1.0, -1.0, 0.5, 0.5, 0.5
+	 -1.0, -1.0, -1.0, 0.0, 0.10, 0.5,
+	  1.0, -1.0, -1.0, 0.0, 0.50, 0.25,
+	  1.0,  1.0, -1.0, 0.5, 0.75, 0.25,
+	 -1.0,  1.0, -1.0, 0.5, 0.55, 1.0
      };
 
      size_t indices[] = {
@@ -207,14 +207,14 @@ int main ()
 
 	double t = _currTime/500000000.0;
 	for (int i = 0; i < NUM_CUBES; i++) {
-	    //SMOL_Matrix rot;
-	    //SMOL_RotationMatrix(&rot, (double[]){sin(t), 0.0, cos(t)}, (t)*(M_PI/180));
+	    SMOL_Matrix rot;
+	    SMOL_RotationMatrix(&rot, (double[]){sin(t), 0.0, cos(t)}, (t)*(M_PI/180));
 
-	    //SMOL_Multiply(&_modelMat, &_cubeMats[i], &rot);
-	    _modelMat = _cubeMats[i];
+	    SMOL_Multiply(&_modelMat, &_cubeMats[i], &rot);
+	    //_modelMat = _cubeMats[i];
 	    SR_DrawArray(SR_TRIANGLES, 36, 0);
 
-	    //SMOL_FreeV(2, &rot, &_modelMat);
+	    SMOL_FreeV(2, &rot, &_modelMat);
 	}
 	
 	// Blit texture content to the screen

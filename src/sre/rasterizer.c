@@ -3,6 +3,28 @@
 #include <string.h>
 #include <stdio.h>
 
+/* Static functions */
+
+static inline void mixAttribsTriangle(SR_Vecf *attribs, double *lmbd, SR_Pipeline *pipeline)
+{
+    const size_t ATTRIB_COUNT = pipeline->vertexStageOutputCount;
+    for (size_t i = 0; i < ATTRIB_COUNT; i++) {
+	const SR_Vec4f aiV0 = pipeline->pVertexStageOutput[(ATTRIB_COUNT*0) + i].vec4f;
+	const SR_Vec4f aiV1 = pipeline->pVertexStageOutput[(ATTRIB_COUNT*1) + i].vec4f;
+	const SR_Vec4f aiV2 = pipeline->pVertexStageOutput[(ATTRIB_COUNT*2) + i].vec4f;
+
+	attribs[i] = (SR_Vecf)(SR_Vec4f){
+	    .x = lmbd[0]*aiV0.x + lmbd[1]*aiV1.x + lmbd[2]*aiV2.x,
+	    .y = lmbd[0]*aiV0.y + lmbd[1]*aiV1.y + lmbd[2]*aiV2.y,
+	    .z = lmbd[0]*aiV0.z + lmbd[1]*aiV1.z + lmbd[2]*aiV2.z,
+	    .w = lmbd[0]*aiV0.w + lmbd[1]*aiV1.w + lmbd[2]*aiV2.w,
+	};
+    }
+}
+
+/* ~/Static functions/~ */
+
+
 void SR_WritePixel(SR_FrameBuffer *buffer, const int *pos, void* value)
 /* Writes the desired color values in the (x, y) coordinates of the color buffer. */
 {   
@@ -86,26 +108,25 @@ void SR_WriteTriangle(SR_FrameBuffer *buffer, const int *pos, SR_Pipeline* pipel
     const int d01[2] = {v1[0] -v0[0], v1[1] -v0[1]};
     const int d12[2] = {v2[0] -v1[0], v2[1] -v1[1]};
     const int d20[2] = {v0[0] -v2[0], v0[1] -v2[1]};
-    const double area = d02[0]*d01[1] - d02[1]*d01[0];
+    const double area = d02[0]*d01[1] - d02[1]*d01[0]; // Triangle Area x 2
 
-    // Atrribute interpolation
+    // Interpolated Vertex Attributes
     const size_t ATTRIB_COUNT = pipeline->vertexStageOutputCount;
-    const size_t ATTRIB_SIZE = sizeof(SR_Vecf);
-    const size_t VERT_OFFSET = ATTRIB_COUNT * ATTRIB_SIZE;
-
-    SR_Vecf attribs[ATTRIB_COUNT];
+    SR_Vecf attribs[ATTRIB_COUNT]; 
     
     int lpos[3];
-    float lmbd[3];
-    int e01, e12, e20;
-    
+    double lmbd[3]; // Barycentric coordinates
+    int e01, e12, e20; // Edge values
+
+    // Iterate bounding box
     for (lpos[1] = by; lpos[1] <= bh; lpos[1]++) {
-	e01 = (bx-v0[0])*d01[1] - (lpos[1]-v0[1])*d01[0]; //v2
-	e12 = (bx-v1[0])*d12[1] - (lpos[1]-v1[1])*d12[0]; //v0
-	e20 = (bx-v2[0])*d20[1] - (lpos[1]-v2[1])*d20[0]; //v1
+	e12 = (bx-v1[0])*d12[1] - (lpos[1]-v1[1])*d12[0]; //vertex 0
+	e20 = (bx-v2[0])*d20[1] - (lpos[1]-v2[1])*d20[0]; //vertex 1
+	e01 = (bx-v0[0])*d01[1] - (lpos[1]-v0[1])*d01[0]; //vertex 2
 	
 	for (lpos[0] = bx; lpos[0] <= bw; lpos[0]++) {
 	    if ((e01 >= 0) && (e12 >= 0) && (e20 >= 0)) {
+		// Calculate Barycentric coordinates
 		lmbd[0] = (double)e12/area;
 		lmbd[1] = (double)e20/area;
 		lmbd[2] = (double)e01/area;
@@ -113,30 +134,15 @@ void SR_WriteTriangle(SR_FrameBuffer *buffer, const int *pos, SR_Pipeline* pipel
 		lpos[2] = lmbd[0]*v0[2]+lmbd[1]*v1[2]+lmbd[2]*v2[2];
 
 		// Attribute interpolation
-		for (size_t i = 0; i < ATTRIB_COUNT; i++) {
-		    const SR_Vec4f aiV0 = pipeline->currVertexStageOutput[(ATTRIB_COUNT*0) + i].vec4f;
-		    const SR_Vec4f aiV1 = pipeline->currVertexStageOutput[(ATTRIB_COUNT*1) + i].vec4f;
-		    const SR_Vec4f aiV2 = pipeline->currVertexStageOutput[(ATTRIB_COUNT*2) + i].vec4f;
-		    attribs[i] = (SR_Vecf)aiV0;
-		    /* attribs[i] = (SR_Vecf)(SR_Vec4f){ */
-		    /* 	.x = lmbd[0]*aiV0.x + lmbd[1]*aiV1.x + lmbd[2]*aiV2.x, */
-		    /* 	.y = lmbd[0]*aiV0.y + lmbd[1]*aiV1.y + lmbd[2]*aiV2.y, */
-		    /* 	.z = lmbd[0]*aiV0.z + lmbd[1]*aiV1.z + lmbd[2]*aiV2.z, */
-		    /* 	.w = lmbd[0]*aiV0.w + lmbd[1]*aiV1.w + lmbd[2]*aiV2.w, */
-		    /* }; */
-		}
+		mixAttribsTriangle(attribs, lmbd, pipeline);
 		
 		// Fragment shading
 		SR_Vec4f color = (SR_Vec4f){0.0, 0.0, 0.0, 0.0};
 		(*(pipeline->fragmentShader))(ATTRIB_COUNT, attribs, &color);
-		//SR_Vec4f color = pipeline->pVertexStageOutput[0].vec4f;
-		//color.w = 1.0;
 		uint8_t texel[] = {color.x*255,
 				   color.y*255,
 				   color.z*255,
 				   color.w*255};
-
-
 		
 		SR_WritePixel(buffer, lpos, &texel);
 	    }

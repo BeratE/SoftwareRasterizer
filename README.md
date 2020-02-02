@@ -4,7 +4,7 @@ A simple project for the sole purpose of learning the basics of computer graphic
 
 The project consists of three major parts:
 * A basic software rendering engine.
-* A small matrix operations library (smol).
+* A small matrix operations library (smol, outsourced as seperate library).
 * A simple application demo of the above.
 
 I greatly appreciate any critique and pointers concerning programming style and performance or any other mistakes I may have done (does the _const_ qualifier make any sense on pointer parameters? Should I store the matrix in a fixed sized array or an allocated pointer? Does it make any difference? How should I access the matrix elements to prevent page faults? etc.)
@@ -15,9 +15,10 @@ I greatly appreciate any critique and pointers concerning programming style and 
 * Vertex & Index Buffers
 * Vertex Array Objects and Vertex Attributes
 * Vertex Shader
+* Fragment Shader
+* Shading and Attribute Interpolation
 
 ## Todo
-* Fragment Shader
 * Z-buffering
 * Clipping
 * Texturing
@@ -25,7 +26,7 @@ I greatly appreciate any critique and pointers concerning programming style and 
 * Fix Line Rendering Algorithm
 
 ## Testing
-The test framework consists of the CTest utility of CMake together with a small set of macros called minunit. 
+The test framework consists of the CTest utility of CMake together with a library containing a small set of macros, called minunit. 
 
 The CMakeLists.txt in the test/ directory contains definitions for test executables, corresponding to single files of collections of test cases. All test cases perform certain assertions and checks and are packed together into a single test suite. This suite is run by the test executable and Ig everything is OK, a zero value is returned. A non-zero value indicates a failure to the CTest environment.
 
