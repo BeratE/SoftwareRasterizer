@@ -16,10 +16,10 @@ I greatly appreciate any critique and pointers concerning programming style and 
 * Vertex Array Objects and Vertex Attributes
 * Vertex Shader
 * Fragment Shader
-* Shading and Attribute Interpolation
+* Shading and Attribute Interpolation (Screen Space)
+* Z-buffering
 
 ## Todo
-* Z-buffering
 * Clipping
 * Texturing
 * Geometry Anti-Aliasing

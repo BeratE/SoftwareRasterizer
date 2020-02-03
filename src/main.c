@@ -14,8 +14,8 @@ unsigned int _texWidth = 800;
 unsigned int _texHeight = 800;
 SDL_Texture* _texture = NULL;
 
-const int NUM_CUBES = 1;
-SMOL_Matrix _cubeMats[1];
+const int NUM_CUBES = 10;
+SMOL_Matrix _cubeMats[10];
 size_t _frame = 0;
 double _runTime = 0;
 Uint64 _lastTime, _currTime;
@@ -38,8 +38,6 @@ void vertexShader(size_t count, SR_Vecf *attribs, SR_Vec4f *vPos)
     SR_Vec3f aPos = attribs[0].vec3f;
     SR_Vec3f aColor = attribs[1].vec3f;
     
-    double t = _currTime/500000000.0;
-    
     SMOL_Matrix p = (SMOL_Matrix){.nRows = 4, .nCols = 1, .fields = (double*)&aPos};
     p.fields[3] = 1.0;
    
@@ -50,7 +48,7 @@ void vertexShader(size_t count, SR_Vecf *attribs, SR_Vec4f *vPos)
     SMOL_Multiply(&k, &mat, &p);
     memcpy(vPos, k.fields, sizeof(double)*4);
 
-    SR_SetVertexStageOutput(0, &aColor);
+    SR_SetVertexStageOutput(0, (SR_Vecf*)&aColor);
 
     SMOL_FreeV(2, &k, &mat);
 }
@@ -111,15 +109,15 @@ void init ()
 
     SMOL_PerspectiveMatrix(&_perspectiveMat, 90, _texWidth/_texHeight, 0.1, 100);
     SMOL_CameraMatrix(&_viewMat,
-		      (double[]){0.0, 0.0, 5.0},
+		      (double[]){0.0, 0.0, 10.0},
 		      (double[]){0.0, 0.0, 0.0},
 		      (double[]){0.0, 1.0, 0.0});
 
     for (int i = 0; i < NUM_CUBES; i++) {
 	SMOL_EyeMatrix(&_cubeMats[i], 4);
-	/* SMOL_SetField(&_cubeMats[i], 0, 3, (rand()%10) * ((rand()%2) ? 1.0 : -1.0)); */
-	/* SMOL_SetField(&_cubeMats[i], 1, 3, (rand()%10) * ((rand()%2) ? 1.0 : -1.0)); */
-	/* SMOL_SetField(&_cubeMats[i], 2, 3, (rand()%20)); */
+	SMOL_SetField(&_cubeMats[i], 0, 3, (rand()%7) * ((rand()%2) ? 1.0 : -1.0));
+	SMOL_SetField(&_cubeMats[i], 1, 3, (rand()%7) * ((rand()%2) ? 1.0 : -1.0));
+	SMOL_SetField(&_cubeMats[i], 2, 3, (rand()%20));
     }
     
     _theVao = SR_GenVertexArray();

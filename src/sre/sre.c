@@ -1,6 +1,7 @@
 #include "sre.h"
 #include <string.h>
 #include <math.h>
+#include <float.h>
 #include <stdio.h>
 
 /* ~Global State~ */
@@ -126,10 +127,14 @@ void SR_SetViewPort(int w, int h)
 void SR_Clear(enum SR_RENDER_TARGET_BIT buffermask)
 /* Clear the target buffer with zero-values. */
 {
-    if (buffermask & SR_COLOR_BUFFER_BIT)
-	SR_TexBufferClear(&_framebuffer.color, 0.0);
-    if (buffermask & SR_DEPTH_BUFFER_BIT)
-	SR_TexBufferClear(&_framebuffer.depth, 0.0);
+    if (buffermask & SR_COLOR_BUFFER_BIT) {
+	int clearVal = 0;
+	SR_TexBufferClear(&_framebuffer.color, &clearVal);
+    }
+    if (buffermask & SR_DEPTH_BUFFER_BIT) {
+	float clearVal = FLT_MAX;
+	SR_TexBufferClear(&_framebuffer.depth, &clearVal);
+    }
 }
 
 
@@ -330,7 +335,7 @@ void SR_DrawArray(enum SR_PRIMITIVE_TYPE prim_type, size_t count, size_t startin
     const size_t HEIGHT = _framebuffer.color.height;
 
     // Per Patch
-    int patchScreenCoords[VERT_PER_PRIM * 3];
+    SR_VecScreen patchScreenCoords[VERT_PER_PRIM];
     SR_Vec4f patchVertPos[VERT_PER_PRIM];     
     SR_Vecf patchVertStageOutput[VERT_PER_PRIM][VERT_OUTPUT_N];
     _pipeline.pVertexStageOutput = (SR_Vecf*)patchVertStageOutput;
@@ -361,9 +366,9 @@ void SR_DrawArray(enum SR_PRIMITIVE_TYPE prim_type, size_t count, size_t startin
 	if (patchVertNum == (VERT_PER_PRIM - 1)) {
 	    // Viewport transform;
 	    for(size_t k = 0; k < VERT_PER_PRIM; k++) {
-		patchScreenCoords[3*k+0] = patchVertPos[k].x * WIDTH/2 + WIDTH/2;
-		patchScreenCoords[3*k+1] = patchVertPos[k].y * HEIGHT/2 + HEIGHT/2;
-		patchScreenCoords[3*k+2] = -patchVertPos[k].z;
+		patchScreenCoords[k].x = patchVertPos[k].x * WIDTH/2 + WIDTH/2;
+		patchScreenCoords[k].y = patchVertPos[k].y * HEIGHT/2 + HEIGHT/2;
+		patchScreenCoords[k].z = patchVertPos[k].z;
 	    }
 
 	    // Rasterization

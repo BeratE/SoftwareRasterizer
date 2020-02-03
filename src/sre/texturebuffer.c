@@ -33,10 +33,12 @@ void SR_TexBufferFree(SR_TexBuffer2D *buffer)
     *buffer = SR_NULL_TEXBUFFER;
 }
 
-void SR_TexBufferClear(SR_TexBuffer2D *buffer, uint8_t value)
+void SR_TexBufferClear(SR_TexBuffer2D *buffer, const void* value)
 /* Clears the elements of the color buffer array with the given value. */
 {
-    memset(buffer->values, value, buffer->width*buffer->height*buffer->fsize);
+    for (size_t i = 0; i < buffer->width*buffer->height; i++) {
+	memcpy(&buffer->values[i*buffer->fsize], value, buffer->fsize);
+    }
 }
 
 size_t SR_TexBufferSize(SR_TexBuffer2D *buffer)
@@ -52,7 +54,7 @@ void SR_TexBufferRead(SR_TexBuffer2D *buffer, void* outValue, size_t x, size_t y
     memcpy(outValue, &buffer->values[offset], buffer->fsize);
 }
 
-void SR_TexBufferWrite(SR_TexBuffer2D *buffer, void *value, size_t x, size_t y)
+void SR_TexBufferWrite(SR_TexBuffer2D *buffer, const void *value, size_t x, size_t y)
 /* Write the given value (of format size) into the texture buffer at position (x,y). */
 {
     const size_t offset = (y * buffer->width + x) * buffer->fsize;

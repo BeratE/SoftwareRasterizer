@@ -3,9 +3,18 @@
 #include <string.h>
 #include <stdio.h>
 
+/* Macros */
+
+#define MIN3(a, b, c) (a < b) ? (a < c ? a : c) : (b < c ? b : c)
+#define MAX3(a, b, c) (a > b) ? (a > c ? a : c) : (b > c ? b : c)
+#define CLIP(x, a, b) (x < b) ? ((x < a) ? a : x) : b
+
+/* ~/Macros/~ */
+
+
 /* Static functions */
 
-static inline void mixAttribsTriangle(SR_Vecf *attribs, double *lmbd, SR_Pipeline *pipeline)
+static inline void mixAttribsTriangle(SR_Vecf *attribs, const float *lmbd, const SR_Pipeline *pipeline)
 {
     const size_t ATTRIB_COUNT = pipeline->vertexStageOutputCount;
     for (size_t i = 0; i < ATTRIB_COUNT; i++) {
@@ -25,18 +34,18 @@ static inline void mixAttribsTriangle(SR_Vecf *attribs, double *lmbd, SR_Pipelin
 /* ~/Static functions/~ */
 
 
-void SR_WritePixel(SR_FrameBuffer *buffer, const int *pos, void* value)
+void SR_WritePixel(SR_FrameBuffer *buffer, const SR_VecScreen *pos, const void* value)
 /* Writes the desired color values in the (x, y) coordinates of the color buffer. */
 {   
-    const int offset = (buffer->color.width * pos[1] + pos[0]);
-    //printf("%d, %d\n", pos[2], buffer->depth.values[offset]);
-    if (pos[2] <  buffer->depth.values[offset]) {
-	buffer->depth.values[offset] = pos[2];
-	SR_TexBufferWrite(&buffer->color, value, pos[0], pos[1]);
+    float depth;
+    SR_TexBufferRead(&buffer->depth, &depth, pos->x, pos->y);
+    if (pos->z < depth) {
+	SR_TexBufferWrite(&buffer->depth, &pos->z, pos->x, pos->y);
+	SR_TexBufferWrite(&buffer->color, value, pos->x, pos->y);
     }
 }
 
-void SR_WriteLine(SR_FrameBuffer *buffer, const int *pos, SR_Pipeline* pipeline)
+void SR_WriteLine(SR_FrameBuffer *buffer, const SR_VecScreen *pos, const SR_Pipeline* pipeline)
 /* Bresenheim Midpoint Line Rasterization. */
 {
 /*
@@ -85,54 +94,52 @@ void SR_WriteLine(SR_FrameBuffer *buffer, const int *pos, SR_Pipeline* pipeline)
 */
 }
 
-void SR_WriteTriangle(SR_FrameBuffer *buffer, const int *pos, SR_Pipeline* pipeline)
+void SR_WriteTriangle(SR_FrameBuffer *buffer, const SR_VecScreen *pos, const SR_Pipeline* pipeline)
 /* Triangle rastierization using the pineda algorithm. */
 {
-    const int v0[] = {pos[0], pos[1], pos[2]};
-    const int v1[] = {pos[3], pos[4], pos[5]};
-    const int v2[] = {pos[6], pos[7], pos[8]};
-    
-    // Bounding box
     const int WIDTH = (int)buffer->color.width-1;
     const int HEIGHT = (int)buffer->color.height-1;
-    int bx = v0[0]<v1[0] ? (v0[0]<v2[0] ? v0[0] : v2[0]) : (v1[0]<v2[0] ? v1[0] : v2[0]);
-    int by = v0[1]<v1[1] ? (v0[1]<v2[1] ? v0[1] : v2[1]) : (v1[1]<v2[1] ? v1[1] : v2[1]);
-    int bw = v0[0]>v1[0] ? (v0[0]>v2[0] ? v0[0] : v2[0]) : (v1[0]>v2[0] ? v1[0] : v2[0]);
-    int bh = v0[1]>v1[1] ? (v0[1]>v2[1] ? v0[1] : v2[1]) : (v1[1]>v2[1] ? v1[1] : v2[1]);
-    bx = (bx < WIDTH)  ? ((bx < 0) ? 0 : bx) : WIDTH;
-    by = (by < HEIGHT) ? ((by < 0) ? 0 : by) : HEIGHT;
-    bw = (bw < WIDTH)  ? ((bw < 0) ? 0 : bw) : WIDTH;
-    bh = (bh < HEIGHT) ? ((bh < 0) ? 0 : bh) : HEIGHT;
+    // Bounding box
+    int bx = MIN3(pos[0].x, pos[1].x, pos[2].x);
+    int by = MIN3(pos[0].y, pos[1].y, pos[2].y);
+    int bw = MAX3(pos[0].x, pos[1].x, pos[2].x);
+    int bh = MAX3(pos[0].y, pos[1].y, pos[2].y);
+    bx = CLIP(bx, 0, WIDTH);
+    by = CLIP(by, 0, HEIGHT);
+    bw = CLIP(bw, 0, WIDTH);
+    bh = CLIP(bh, 0, HEIGHT);
 
-    const int d02[2] = {v2[0] -v0[0], v2[1] -v0[1]};
-    const int d01[2] = {v1[0] -v0[0], v1[1] -v0[1]};
-    const int d12[2] = {v2[0] -v1[0], v2[1] -v1[1]};
-    const int d20[2] = {v0[0] -v2[0], v0[1] -v2[1]};
-    const double area = d02[0]*d01[1] - d02[1]*d01[0]; // Triangle Area x 2
+    // Edges
+    const int d02[2] = {pos[2].x -pos[0].x, pos[2].y -pos[0].y};
+    const int d01[2] = {pos[1].x -pos[0].x, pos[1].y -pos[0].y};
+    const int d12[2] = {pos[2].x -pos[1].x, pos[2].y -pos[1].y};
+    const int d20[2] = {pos[0].x -pos[2].x, pos[0].y -pos[2].y};
+    const int area = d02[0]*d01[1] - d02[1]*d01[0]; // Triangle Area x 2
 
     // Interpolated Vertex Attributes
     const size_t ATTRIB_COUNT = pipeline->vertexStageOutputCount;
     SR_Vecf attribs[ATTRIB_COUNT]; 
     
-    int lpos[3];
-    double lmbd[3]; // Barycentric coordinates
+    SR_VecScreen lpos;
+    float lmbd[3]; // Barycentric coordinates
     int e01, e12, e20; // Edge values
 
     // Iterate bounding box
-    for (lpos[1] = by; lpos[1] <= bh; lpos[1]++) {
-	e12 = (bx-v1[0])*d12[1] - (lpos[1]-v1[1])*d12[0]; //vertex 0
-	e20 = (bx-v2[0])*d20[1] - (lpos[1]-v2[1])*d20[0]; //vertex 1
-	e01 = (bx-v0[0])*d01[1] - (lpos[1]-v0[1])*d01[0]; //vertex 2
+    for (lpos.y = by; lpos.y <= bh; lpos.y++) {
+	e12 = (bx-pos[1].x)*d12[1] - (lpos.y-pos[1].y)*d12[0]; //vertex 0
+	e20 = (bx-pos[2].x)*d20[1] - (lpos.y-pos[2].y)*d20[0]; //vertex 1
+	e01 = (bx-pos[0].x)*d01[1] - (lpos.y-pos[0].y)*d01[0]; //vertex 2
 	
-	for (lpos[0] = bx; lpos[0] <= bw; lpos[0]++) {
+	for (lpos.x = bx; lpos.x <= bw; lpos.x++) {
 	    if ((e01 >= 0) && (e12 >= 0) && (e20 >= 0)) {
 		// Calculate Barycentric coordinates
-		lmbd[0] = (double)e12/area;
-		lmbd[1] = (double)e20/area;
-		lmbd[2] = (double)e01/area;
-		
-		lpos[2] = lmbd[0]*v0[2]+lmbd[1]*v1[2]+lmbd[2]*v2[2];
+		lmbd[0] = (float)e12/area;
+		lmbd[1] = (float)e20/area;
+		lmbd[2] = (float)e01/area;
 
+		// Z-Interpolation
+		lpos.z = lmbd[0]*pos[0].z+lmbd[1]*pos[1].z+lmbd[2]*pos[2].z;
+		
 		// Attribute interpolation
 		mixAttribsTriangle(attribs, lmbd, pipeline);
 		
@@ -144,7 +151,7 @@ void SR_WriteTriangle(SR_FrameBuffer *buffer, const int *pos, SR_Pipeline* pipel
 				   color.z*255,
 				   color.w*255};
 		
-		SR_WritePixel(buffer, lpos, &texel);
+		SR_WritePixel(buffer, &lpos, &texel);
 	    }
 	    	    
 	    e01 += d01[1];

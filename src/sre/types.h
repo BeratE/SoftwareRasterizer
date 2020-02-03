@@ -55,6 +55,12 @@ typedef union {
     SR_Vec4f vec4f;
 } SR_Vecf;
 
+// Composite vector types
+typedef struct {
+    int x, y;
+    float z;
+} SR_VecScreen;
+
 // Vertex attribute data
 typedef struct {
     size_t count;  // Package size
@@ -93,6 +99,8 @@ typedef struct {
 } SR_Pipeline;
 
 // Write functions
-typedef void(*SR_Write)(SR_FrameBuffer *buffer, const int *pos, SR_Pipeline *pipeline);
+typedef void(*SR_Write)(SR_FrameBuffer *buffer,
+			const SR_VecScreen *pos,
+			const SR_Pipeline *pipeline);
 
 #endif // TYPES_H
