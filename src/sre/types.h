@@ -5,6 +5,14 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+/* Macros */
+
+#define MIN3(a, b, c) (a < b) ? (a < c ? a : c) : (b < c ? b : c)
+#define MAX3(a, b, c) (a > b) ? (a > c ? a : c) : (b > c ? b : c)
+#define CLAMP(x, a, b) (x < b) ? ((x < a) ? a : x) : b // clamp x between (a, b)
+
+/* ~/Macros/~ */
+
 // Common Constants and Enumerations
 enum SR_PRIMITIVE_TYPE
     {SR_POINTS = 1,

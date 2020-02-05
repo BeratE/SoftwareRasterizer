@@ -15,9 +15,11 @@ set (SRE_FILES
 ### Application files
 set (APP_FILES
   # Header
+  ${SRC_DIR}/stb_image.h
   ${SRC_DIR}/config.h
   # Source
-  ${SRC_DIR}/main.c)
+  ${SRC_DIR}/main.c
+  ${SRC_DIR}/shader.c)
 
 ### Target libraries
 add_library(${SRE_TGT} ${SRE_FILES})

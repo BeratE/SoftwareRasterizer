@@ -10,6 +10,7 @@ set(CMAKE_BUILD_TYPE Debug)
 
 ### Directory Structure
 set (SRC_DIR "${CMAKE_SOURCE_DIR}/src")     # Source Files
+set (BIN_DIR "${CMAKE_SOURCE_DIR}/bin")     # Binaries
 set (LIB_DIR "${CMAKE_SOURCE_DIR}/lib")     # Static libraries
 set (INC_DIR "${CMAKE_SOURCE_DIR}/include") # Addition include
 
@@ -41,6 +42,9 @@ configure_file (
   "${SRC_DIR}/config.h")
 
 ### Create and Link Executable
+set(LIBRARY_OUTPUT_PATH ${LIB_DIR})
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${BIN_DIR})
+
 link_directories(${LIB_DIR}) # Link targets against following libraries
 include_directories(${INCS}) # Include these targets for the compiling process
 

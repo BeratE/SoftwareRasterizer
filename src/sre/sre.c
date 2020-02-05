@@ -32,7 +32,7 @@ static inline void collectVertexAttribs(SR_Vecf *attribs, size_t elementIndex)
     for (size_t ai = 0; ai < _pCurrVAO->attributesCount; ai++) {
 	const SR_VertexAttribute va =_pCurrVAO->attributes[ai];
 	// Pointer to vertex attribute location
-	const uint8_t *pVertexData = ((unsigned char*)_pCurrVAO->vertexBuffer)
+	const uint8_t *pVertexData = ((uint8_t*)_pCurrVAO->vertexBuffer)
 	    + va.offset
 	    + (elementIndex * va.stride);
 	
@@ -41,8 +41,6 @@ static inline void collectVertexAttribs(SR_Vecf *attribs, size_t elementIndex)
 	case 3: attribs[ai].vec3f.z = *(((double*)pVertexData)+2); /* FALLTHRU */
 	case 2: attribs[ai].vec2f.y = *(((double*)pVertexData)+1); /* FALLTHRU */
 	case 1: attribs[ai].vec1f.x = *(((double*)pVertexData)+0);
-	    break;
-	default:
 	    break;
 	}
     }

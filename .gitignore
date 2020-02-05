@@ -19,4 +19,7 @@ auto-save-list
 tramp
 .\#*
 
+# Other
 build
+bin
+stb_image.h

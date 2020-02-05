@@ -33,6 +33,7 @@ void SR_DrawArray(enum SR_PRIMITIVE_TYPE type, size_t count, size_t startxindex)
 SR_TexBuffer2D SR_TexBufferCreate(size_t width, size_t height, uint8_t formatsize);
 SR_TexBuffer2D SR_TexBufferCopy(const SR_TexBuffer2D* buffer);
 void SR_TexBufferRead(SR_TexBuffer2D *buffer, void* outValue, size_t x, size_t y);
+void SR_TexBufferSample(SR_TexBuffer2D *buffer, void* outValue, float x, float y);
 void SR_TexBufferWrite(SR_TexBuffer2D *buffer, const void *value, size_t x, size_t y);
 void SR_TexBufferClear(SR_TexBuffer2D *buffer, const void *value);
 void SR_TexBufferFree(SR_TexBuffer2D *buffer);

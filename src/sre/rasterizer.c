@@ -3,18 +3,10 @@
 #include <string.h>
 #include <stdio.h>
 
-/* Macros */
-
-#define MIN3(a, b, c) (a < b) ? (a < c ? a : c) : (b < c ? b : c)
-#define MAX3(a, b, c) (a > b) ? (a > c ? a : c) : (b > c ? b : c)
-#define CLIP(x, a, b) (x < b) ? ((x < a) ? a : x) : b
-
-/* ~/Macros/~ */
-
-
 /* Static functions */
 
-static inline void mixAttribsTriangle(SR_Vecf *attribs, const float *lmbd, const SR_Pipeline *pipeline)
+static inline void mixAttribsTriangle(SR_Vecf *attribs, const SR_VecScreen *fpos, const SR_VecScreen *pos,
+				      const float *baryc, const SR_Pipeline *pipeline)
 {
     const size_t ATTRIB_COUNT = pipeline->vertexStageOutputCount;
     for (size_t i = 0; i < ATTRIB_COUNT; i++) {
@@ -23,10 +15,14 @@ static inline void mixAttribsTriangle(SR_Vecf *attribs, const float *lmbd, const
 	const SR_Vec4f aiV2 = pipeline->pVertexStageOutput[(ATTRIB_COUNT*2) + i].vec4f;
 
 	attribs[i] = (SR_Vecf)(SR_Vec4f){
-	    .x = lmbd[0]*aiV0.x + lmbd[1]*aiV1.x + lmbd[2]*aiV2.x,
-	    .y = lmbd[0]*aiV0.y + lmbd[1]*aiV1.y + lmbd[2]*aiV2.y,
-	    .z = lmbd[0]*aiV0.z + lmbd[1]*aiV1.z + lmbd[2]*aiV2.z,
-	    .w = lmbd[0]*aiV0.w + lmbd[1]*aiV1.w + lmbd[2]*aiV2.w,
+	    .x = fpos->z*(baryc[0]*(aiV0.x/pos[0].z) + baryc[1]*(aiV1.x/pos[1].z) + baryc[2]*(aiV2.x/pos[2].z)),
+	    .y = fpos->z*(baryc[0]*(aiV0.y/pos[0].z) + baryc[1]*(aiV1.y/pos[1].z) + baryc[2]*(aiV2.y/pos[2].z)),
+	    .z = fpos->z*(baryc[0]*(aiV0.z/pos[0].z) + baryc[1]*(aiV1.z/pos[1].z) + baryc[2]*(aiV2.z/pos[2].z)),
+	    .w = fpos->z*(baryc[0]*(aiV0.w/pos[0].z) + baryc[1]*(aiV1.w/pos[1].z) + baryc[2]*(aiV2.w/pos[2].z)),
+	    /* .x = (baryc[0]*(aiV0.x) + baryc[1]*(aiV1.x) + baryc[2]*(aiV2.x)), */
+	    /* .y = (baryc[0]*(aiV0.y) + baryc[1]*(aiV1.y) + baryc[2]*(aiV2.y)), */
+	    /* .z = (baryc[0]*(aiV0.z) + baryc[1]*(aiV1.z) + baryc[2]*(aiV2.z)), */
+	    /* .w = (baryc[0]*(aiV0.w) + baryc[1]*(aiV1.w) + baryc[2]*(aiV2.w)), */
 	};
     }
 }
@@ -104,10 +100,10 @@ void SR_WriteTriangle(SR_FrameBuffer *buffer, const SR_VecScreen *pos, const SR_
     int by = MIN3(pos[0].y, pos[1].y, pos[2].y);
     int bw = MAX3(pos[0].x, pos[1].x, pos[2].x);
     int bh = MAX3(pos[0].y, pos[1].y, pos[2].y);
-    bx = CLIP(bx, 0, WIDTH);
-    by = CLIP(by, 0, HEIGHT);
-    bw = CLIP(bw, 0, WIDTH);
-    bh = CLIP(bh, 0, HEIGHT);
+    bx = CLAMP(bx, 0, WIDTH);
+    by = CLAMP(by, 0, HEIGHT);
+    bw = CLAMP(bw, 0, WIDTH);
+    bh = CLAMP(bh, 0, HEIGHT);
 
     // Edges
     const int d02[2] = {pos[2].x -pos[0].x, pos[2].y -pos[0].y};
@@ -120,28 +116,28 @@ void SR_WriteTriangle(SR_FrameBuffer *buffer, const SR_VecScreen *pos, const SR_
     const size_t ATTRIB_COUNT = pipeline->vertexStageOutputCount;
     SR_Vecf attribs[ATTRIB_COUNT]; 
     
-    SR_VecScreen lpos;
-    float lmbd[3]; // Barycentric coordinates
+    SR_VecScreen fpos; // Fragment position
+    float baryc[3];    // Barycentric coordinates
     int e01, e12, e20; // Edge values
 
     // Iterate bounding box
-    for (lpos.y = by; lpos.y <= bh; lpos.y++) {
-	e12 = (bx-pos[1].x)*d12[1] - (lpos.y-pos[1].y)*d12[0]; //vertex 0
-	e20 = (bx-pos[2].x)*d20[1] - (lpos.y-pos[2].y)*d20[0]; //vertex 1
-	e01 = (bx-pos[0].x)*d01[1] - (lpos.y-pos[0].y)*d01[0]; //vertex 2
+    for (fpos.y = by; fpos.y <= bh; fpos.y++) {
+	e12 = (bx-pos[1].x)*d12[1] - (fpos.y-pos[1].y)*d12[0]; //vertex 0
+	e20 = (bx-pos[2].x)*d20[1] - (fpos.y-pos[2].y)*d20[0]; //vertex 1
+	e01 = (bx-pos[0].x)*d01[1] - (fpos.y-pos[0].y)*d01[0]; //vertex 2
 	
-	for (lpos.x = bx; lpos.x <= bw; lpos.x++) {
+	for (fpos.x = bx; fpos.x <= bw; fpos.x++) {
 	    if ((e01 >= 0) && (e12 >= 0) && (e20 >= 0)) {
 		// Calculate Barycentric coordinates
-		lmbd[0] = (float)e12/area;
-		lmbd[1] = (float)e20/area;
-		lmbd[2] = (float)e01/area;
+		baryc[0] = (float)e12/area;
+		baryc[1] = (float)e20/area;
+		baryc[2] = (float)e01/area;
 
 		// Z-Interpolation
-		lpos.z = lmbd[0]*pos[0].z+lmbd[1]*pos[1].z+lmbd[2]*pos[2].z;
+		fpos.z = 1.0 / (baryc[0]/pos[0].z+baryc[1]/pos[1].z+baryc[2]/pos[2].z);
 		
 		// Attribute interpolation
-		mixAttribsTriangle(attribs, lmbd, pipeline);
+		mixAttribsTriangle(attribs, &fpos, pos, baryc, pipeline);
 		
 		// Fragment shading
 		SR_Vec4f color = (SR_Vec4f){0.0, 0.0, 0.0, 0.0};
@@ -151,7 +147,7 @@ void SR_WriteTriangle(SR_FrameBuffer *buffer, const SR_VecScreen *pos, const SR_
 				   color.z*255,
 				   color.w*255};
 		
-		SR_WritePixel(buffer, &lpos, &texel);
+		SR_WritePixel(buffer, &fpos, &texel);
 	    }
 	    	    
 	    e01 += d01[1];
