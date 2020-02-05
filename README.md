@@ -1,5 +1,7 @@
 # The C Real Time Graphics Project
 
+![Cubes](rtg.png)
+
 A small project for the sole purpose of learning the basics of computer graphics and bare bones C programming.
 
 The project consists of three major parts:

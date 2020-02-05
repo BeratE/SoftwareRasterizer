@@ -1,11 +1,13 @@
 #include <matrix.h>
 #include "sre/sre.h"
 
+/* Global state */
 extern SMOL_Matrix _perspectiveMat;
 extern SMOL_Matrix _viewMat;
 extern SMOL_Matrix _modelMat;
 
 extern SR_TexBuffer2D _image;
+/* ~/Global state/~ */
 
 /* Shader functions */
 void vertexShader(size_t count, SR_Vecf *attribs, SR_Vec4f *vPos)
