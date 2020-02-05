@@ -1,3 +1,4 @@
+#include <string.h>
 #include <matrix.h>
 #include "sre/sre.h"
 
@@ -12,6 +13,9 @@ extern SR_TexBuffer2D _image;
 /* Shader functions */
 void vertexShader(size_t count, SR_Vecf *attribs, SR_Vec4f *vPos)
 {
+    if (count < 3)
+	return;
+    
     // Vertex Input
     SR_Vec3f aPos = attribs[0].vec3f;
     SR_Vec3f aColor = attribs[1].vec3f;
@@ -37,6 +41,9 @@ void vertexShader(size_t count, SR_Vecf *attribs, SR_Vec4f *vPos)
 
 void fragmentShader(size_t count, SR_Vecf *attribs, SR_Vec4f *fColor)
 {
+    if (count < 2)
+	return;
+    
     SR_Vec4f aColor = attribs[0].vec4f;
     SR_Vec2f aUV = attribs[1].vec2f;
     uint8_t c[4];

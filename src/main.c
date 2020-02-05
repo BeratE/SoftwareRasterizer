@@ -145,7 +145,7 @@ void init ()
     _image.values = stbi_load("container.jpg", &width, &height, &nChannels, 4);
     _image.width = width;
     _image.height = height;
-    _image.fsize = 4;
+    _image.format = SR_TEX_FORMAT_RGBA8;
 }
 
 int main ()
