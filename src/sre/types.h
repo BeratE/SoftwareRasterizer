@@ -34,7 +34,7 @@ enum SR_RENDER_TARGET_BIT{
 
 // Texturebuffer
 typedef struct {
-    size_t width;
+    size_t width;   
     size_t height;
     uint16_t format;
     uint8_t *values;
@@ -45,21 +45,25 @@ typedef struct {
 enum SR_TEXTURE_FORMAT {
     // [Type | Num Components | 0 | Num Bytes]
     // Composite Integer Types - 0
-    SR_TEX_FORMAT_R8     = 0x0100 | sizeof(uint8_t),
+    SR_TEX_FORMAT_R8     = 0x0010 | sizeof(uint8_t),
     SR_TEX_FORMAT_RG8    = 0x0200 | sizeof(uint8_t),
-    SR_TEX_FORMAT_RGB8   = 0x0300 | sizeof(uint8_t),
-    SR_TEX_FORMAT_RGBA8  = 0x0400 | sizeof(uint8_t),
-    SR_TEX_FORMAT_R16    = 0x0100 | sizeof(uint16_t),
-    SR_TEX_FORMAT_RG16   = 0x0200 | sizeof(uint16_t),
-    SR_TEX_FORMAT_RGB16  = 0x0300 | sizeof(uint16_t),
-    SR_TEX_FORMAT_RGBA16 = 0x0400 |  sizeof(uint16_t),
+    SR_TEX_FORMAT_RGB8   = 0x0030 | sizeof(uint8_t),
+    SR_TEX_FORMAT_RGBA8  = 0x0040 | sizeof(uint8_t),
+    SR_TEX_FORMAT_R16    = 0x0010 | sizeof(uint16_t),
+    SR_TEX_FORMAT_RG16   = 0x0020 | sizeof(uint16_t),
+    SR_TEX_FORMAT_RGB16  = 0x0030 | sizeof(uint16_t),
+    SR_TEX_FORMAT_RGBA16 = 0x0040 | sizeof(uint16_t),
     // Floating Point Types - 1
-    SR_TEX_FORMAT_32F    = 0x1100 | (sizeof(float)),
+    SR_TEX_FORMAT_32F    = 0x1010 | sizeof(float),
 };
 enum SR_TEXTURE_FORMAT_MASK {
     SR_TEX_FMTM_TYPE   = 0xF000,
-    SR_TEX_FMTM_NCOMPS = 0x0F00,
+    SR_TEX_FMTM_NCOMPS = 0x00F0,
     SR_TEX_FMTM_NBYTES = 0x000F,
+};
+enum SR_TEXTURE_FORMAT_TYPE {
+    SR_TEX_TYPE_UINT  = 0x0000,
+    SR_TEX_TYPE_FLOAT = 0x1000,
 };
 
 // Common vector types

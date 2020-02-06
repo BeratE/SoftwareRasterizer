@@ -13,19 +13,17 @@ I greatly appreciate any critique and pointers concerning programming style and 
 
 ## Features
 * Triangle Rasterization
-* Trivial Texture Buffers
 * Vertex & Index Buffers
-* Vertex Array Objects and Vertex Attributes
+* Texture Buffers & Interpolation
+* Vertex Array Objects with Vertex Attributes
 * Perspective Vertex Attribute Interpolation
+* Vertex & Fragment Shader
 * Z-buffering
-* Vertex Shader
-* Fragment Shader
 * Texturing
 
 ## Todo
 * Clipping
 * Mip-Mapping
-* Filtered Texture Sampling
 * Geometry Anti-Aliasing
 
 ## Bugs

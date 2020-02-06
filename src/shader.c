@@ -48,6 +48,7 @@ void fragmentShader(size_t count, SR_Vecf *attribs, SR_Vec4f *fColor)
     SR_Vec2f aUV = attribs[1].vec2f;
     uint8_t c[4];
     SR_TexBufferRead(&_image, &c, aUV.x*_image.width, aUV.y*_image.height);
+    //SR_TexBufferSample(&_image, &c, aUV.x*_image.width, aUV.y*_image.height);
     // uv coordinates in [0, 1]
     fColor->x = c[0]/255.0;
     fColor->y = c[1]/255.0;

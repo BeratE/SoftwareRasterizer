@@ -32,13 +32,16 @@ void SR_DrawArray(enum SR_PRIMITIVE_TYPE type, size_t count, size_t startxindex)
 // Texture buffers
 SR_TexBuffer2D SR_TexBufferCreate(size_t width, size_t height, uint16_t format);
 SR_TexBuffer2D SR_TexBufferCopy(const SR_TexBuffer2D* buffer);
-void SR_TexBufferRead(SR_TexBuffer2D *buffer, void* outValue, size_t x, size_t y);
-void SR_TexBufferSample(SR_TexBuffer2D *buffer, void* outValue, float x, float y);
+void SR_TexBufferRead(const SR_TexBuffer2D *buffer, void* outValue, size_t x, size_t y);
+void SR_TexBufferSample(const SR_TexBuffer2D *buffer, void* outValue, double x, double y);
 void SR_TexBufferWrite(SR_TexBuffer2D *buffer, const void *value, size_t x, size_t y);
 void SR_TexBufferClear(SR_TexBuffer2D *buffer, const void *value);
 void SR_TexBufferFree(SR_TexBuffer2D *buffer);
-size_t SR_TexBufferFormatSize(const SR_TexBuffer2D *buffer);
 size_t SR_TexBufferSize(const SR_TexBuffer2D *buffer);
+size_t SR_TexBufferFormatSize(const SR_TexBuffer2D *buffer);
+uint16_t SR_TexBufferFormatType(const SR_TexBuffer2D *buffer);
+uint16_t SR_TexBufferFormatNComps(const SR_TexBuffer2D *buffer);
+uint16_t SR_TexBufferFormatNBytes(const SR_TexBuffer2D *buffer);
 
 // Rasterization
 void SR_WritePixel(SR_FrameBuffer *buffer, const SR_VecScreen *pos, const void* value);

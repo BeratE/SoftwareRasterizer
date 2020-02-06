@@ -17,8 +17,8 @@ unsigned int _texWidth = 600;
 unsigned int _texHeight = 600;
 SDL_Texture* _texture = NULL;
 
-const int NUM_CUBES = 10;
-SMOL_Matrix _cubeMats[10];
+const int NUM_CUBES = 1;
+SMOL_Matrix _cubeMats[1];
 size_t _frame = 0;
 double _runTime = 0;
 Uint64 _lastTime, _currTime;
@@ -90,9 +90,9 @@ void init ()
 
     for (int i = 0; i < NUM_CUBES; i++) {
 	SMOL_EyeMatrix(&_cubeMats[i], 4);
-	SMOL_SetField(&_cubeMats[i], 0, 3, (rand()%7) * ((rand()%2) ? 1.0 : -1.0));
-	SMOL_SetField(&_cubeMats[i], 1, 3, (rand()%7) * ((rand()%2) ? 1.0 : -1.0));
-	SMOL_SetField(&_cubeMats[i], 2, 3, (rand()%20));
+	/* SMOL_SetField(&_cubeMats[i], 0, 3, (rand()%7) * ((rand()%2) ? 1.0 : -1.0)); */
+	/* SMOL_SetField(&_cubeMats[i], 1, 3, (rand()%7) * ((rand()%2) ? 1.0 : -1.0)); */
+	/* SMOL_SetField(&_cubeMats[i], 2, 3, (rand()%20)); */
     }
     
     _theVao = SR_GenVertexArray();
