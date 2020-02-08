@@ -28,15 +28,14 @@ void vertexShader(size_t count, SR_Vecf *attribs, SR_Vec4f *vPos)
     SMOL_MultiplyV(&mvp, 3, &_modelMat, &_viewMat, &_perspectiveMat);
 
     // Set Vertex Position
-    SMOL_Matrix k;
-    SMOL_Multiply(&k, &mvp, &p);
-    memcpy(vPos, k.fields, sizeof(double)*4);
+    SMOL_Multiply(&p, &mvp, &p);
+    memcpy(vPos, p.fields, sizeof(double)*4);
 
     // Set Vertex Output
     SR_SetVertexStageOutput(0, (SR_Vecf*)&aColor);
     SR_SetVertexStageOutput(1, (SR_Vecf*)&aUV);
 
-    SMOL_FreeV(2, &k, &mvp);
+    SMOL_FreeV(2, &p, &mvp);
 }
 
 void fragmentShader(size_t count, SR_Vecf *attribs, SR_Vec4f *fColor)
@@ -50,9 +49,9 @@ void fragmentShader(size_t count, SR_Vecf *attribs, SR_Vec4f *fColor)
     SR_TexBufferRead(&_image, &c, aUV.x*_image.width, aUV.y*_image.height);
     //SR_TexBufferSample(&_image, &c, aUV.x*_image.width, aUV.y*_image.height);
     // uv coordinates in [0, 1]
-    fColor->x = c[0]/255.0;
-    fColor->y = c[1]/255.0;
-    fColor->z = c[2]/255.0;
-    fColor->w = c[3]/255.0;
+    fColor->x = c[0]/255.0 * aColor.x;
+    fColor->y = c[1]/255.0 * aColor.y;
+    fColor->z = c[2]/255.0 * aColor.z;
+    fColor->w = c[3]/255.0 * aColor.w;
 }
 /* ~/Shader functions/~ */

@@ -13,6 +13,7 @@ I greatly appreciate any critique and pointers concerning programming style and 
 
 ## Features
 * Triangle Rasterization
+* Trivial Triangle Clipping
 * Vertex & Index Buffers
 * Texture Buffers & Interpolation
 * Vertex Array Objects with Vertex Attributes
@@ -22,8 +23,9 @@ I greatly appreciate any critique and pointers concerning programming style and 
 * Texturing
 
 ## Todo
-* Clipping
+* Polygon Clipping
 * Mip-Mapping
+* Anisotropic Filtering
 * Geometry Anti-Aliasing
 
 ## Bugs

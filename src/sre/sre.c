@@ -119,7 +119,7 @@ void SR_SetViewPort(int w, int h)
     SR_TexBufferFree(&_framebuffer.color);
     SR_TexBufferFree(&_framebuffer.depth);
     _framebuffer.color = SR_TexBufferCreate(w, h, SR_TEX_FORMAT_RGBA8);
-    _framebuffer.depth = SR_TexBufferCreate(w, h, SR_TEX_FORMAT_32F);
+    _framebuffer.depth = SR_TexBufferCreate(w, h, SR_TEX_FORMAT_F32);
 }
 
 void SR_Clear(enum SR_RENDER_TARGET_BIT buffermask)

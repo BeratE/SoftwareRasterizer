@@ -7,10 +7,13 @@ set (SRE_DIR "${SRC_DIR}/sre")
 set (SRE_FILES
   # Header
   ${SRE_DIR}/sre.h
+  ${SRE_DIR}/objloader.h
   # Source
+  ${SRE_DIR}/sre.c
   ${SRE_DIR}/texturebuffer.c
   ${SRE_DIR}/rasterizer.c
-  ${SRE_DIR}/sre.c)
+  ${SRE_DIR}/objloader.c)
+
 
 ### Application files
 set (APP_FILES

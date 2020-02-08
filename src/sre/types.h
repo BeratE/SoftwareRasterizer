@@ -15,9 +15,9 @@
 
 // Common Constants and Enumerations
 enum SR_PRIMITIVE_TYPE{
-    SR_POINTS = 1,
-    SR_LINES,
-    SR_TRIANGLES};
+    SR_POINTS    = 1,
+    SR_LINES     = 2,
+    SR_TRIANGLES = 3};
 
 enum SR_BUFFER_TYPE{
     SR_VERTEX_BUFFER,
@@ -42,20 +42,6 @@ typedef struct {
 #define SR_NULL_TEXBUFFER (SR_TexBuffer2D){.width=0,.height=0,.format=0,.values=NULL}
 
 // Texture Format
-enum SR_TEXTURE_FORMAT {
-    // [Type | Num Components | 0 | Num Bytes]
-    // Composite Integer Types - 0
-    SR_TEX_FORMAT_R8     = 0x0010 | sizeof(uint8_t),
-    SR_TEX_FORMAT_RG8    = 0x0200 | sizeof(uint8_t),
-    SR_TEX_FORMAT_RGB8   = 0x0030 | sizeof(uint8_t),
-    SR_TEX_FORMAT_RGBA8  = 0x0040 | sizeof(uint8_t),
-    SR_TEX_FORMAT_R16    = 0x0010 | sizeof(uint16_t),
-    SR_TEX_FORMAT_RG16   = 0x0020 | sizeof(uint16_t),
-    SR_TEX_FORMAT_RGB16  = 0x0030 | sizeof(uint16_t),
-    SR_TEX_FORMAT_RGBA16 = 0x0040 | sizeof(uint16_t),
-    // Floating Point Types - 1
-    SR_TEX_FORMAT_32F    = 0x1010 | sizeof(float),
-};
 enum SR_TEXTURE_FORMAT_MASK {
     SR_TEX_FMTM_TYPE   = 0xF000,
     SR_TEX_FMTM_NCOMPS = 0x00F0,
@@ -64,6 +50,20 @@ enum SR_TEXTURE_FORMAT_MASK {
 enum SR_TEXTURE_FORMAT_TYPE {
     SR_TEX_TYPE_UINT  = 0x0000,
     SR_TEX_TYPE_FLOAT = 0x1000,
+};
+enum SR_TEXTURE_FORMAT {
+    // [Type | Num Components | 0 | Num Bytes]
+    // Composite Integer Types - 0
+    SR_TEX_FORMAT_R8     = SR_TEX_TYPE_UINT |(1 << 4) | sizeof(uint8_t),
+    SR_TEX_FORMAT_RG8    = SR_TEX_TYPE_UINT |(2 << 4) | sizeof(uint8_t),
+    SR_TEX_FORMAT_RGB8   = SR_TEX_TYPE_UINT |(3 << 4) | sizeof(uint8_t),
+    SR_TEX_FORMAT_RGBA8  = SR_TEX_TYPE_UINT |(4 << 4) | sizeof(uint8_t),
+    SR_TEX_FORMAT_R16    = SR_TEX_TYPE_UINT |(1 << 4) | sizeof(uint16_t),
+    SR_TEX_FORMAT_RG16   = SR_TEX_TYPE_UINT |(2 << 4) | sizeof(uint16_t),
+    SR_TEX_FORMAT_RGB16  = SR_TEX_TYPE_UINT |(3 << 4) | sizeof(uint16_t),
+    SR_TEX_FORMAT_RGBA16 = SR_TEX_TYPE_UINT |(4 << 4) | sizeof(uint16_t),
+    // Floating Point Types - 1
+    SR_TEX_FORMAT_F32    = SR_TEX_TYPE_FLOAT | (1 << 4) | sizeof(float),
 };
 
 // Common vector types

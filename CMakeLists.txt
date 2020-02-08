@@ -52,5 +52,5 @@ include_directories(${INCS}) # Include these targets for the compiling process
 add_subdirectory(src)
 
 # Unit testing
-#enable_testing()
-#add_subdirectory(test)
+enable_testing()
+add_subdirectory(test)

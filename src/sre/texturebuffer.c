@@ -129,7 +129,7 @@ size_t SR_TexBufferSize(const SR_TexBuffer2D *buffer)
 size_t SR_TexBufferFormatSize(const SR_TexBuffer2D *buffer)
 /* Return the size of the textures format in bytes. */
 {
-    return SR_TexBufferFormatNBytes(buffer) * SR_TexBufferFormatNComps(buffer);
+    return SR_TexBufferFormatNBytes(buffer)*SR_TexBufferFormatNComps(buffer);
 }
 
 uint16_t SR_TexBufferFormatType(const SR_TexBuffer2D *buffer)

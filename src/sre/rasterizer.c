@@ -19,10 +19,6 @@ static inline void mixAttribsTriangle(SR_Vecf *attribs, const SR_VecScreen *fpos
 	    .y = fpos->z*(baryc[0]*(aiV0.y/pos[0].z) + baryc[1]*(aiV1.y/pos[1].z) + baryc[2]*(aiV2.y/pos[2].z)),
 	    .z = fpos->z*(baryc[0]*(aiV0.z/pos[0].z) + baryc[1]*(aiV1.z/pos[1].z) + baryc[2]*(aiV2.z/pos[2].z)),
 	    .w = fpos->z*(baryc[0]*(aiV0.w/pos[0].z) + baryc[1]*(aiV1.w/pos[1].z) + baryc[2]*(aiV2.w/pos[2].z)),
-	    /* .x = (baryc[0]*(aiV0.x) + baryc[1]*(aiV1.x) + baryc[2]*(aiV2.x)), */
-	    /* .y = (baryc[0]*(aiV0.y) + baryc[1]*(aiV1.y) + baryc[2]*(aiV2.y)), */
-	    /* .z = (baryc[0]*(aiV0.z) + baryc[1]*(aiV1.z) + baryc[2]*(aiV2.z)), */
-	    /* .w = (baryc[0]*(aiV0.w) + baryc[1]*(aiV1.w) + baryc[2]*(aiV2.w)), */
 	};
     }
 }

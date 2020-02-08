@@ -5,6 +5,7 @@
 #include <matrix.h>
 #include "config.h"
 #include "sre/sre.h"
+#include "sre/objloader.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -146,6 +147,9 @@ void init ()
     _image.width = width;
     _image.height = height;
     _image.format = SR_TEX_FORMAT_RGBA8;
+
+    SR_OBJ_Scene scene;
+    SR_OBJ_LoadScene(&scene, "cube.obj");
 }
 
 int main ()
@@ -195,6 +199,10 @@ int main ()
 		    SMOL_SetField(&translation, 2, 3, translation.fields[11] + posVel);
 		if (event.key.keysym.scancode == SDL_SCANCODE_S)
 		    SMOL_SetField(&translation, 2, 3, translation.fields[11] - posVel);
+		if (event.key.keysym.scancode == SDL_SCANCODE_A) 
+		    SMOL_SetField(&translation, 0, 3, translation.fields[3] + posVel);
+		if (event.key.keysym.scancode == SDL_SCANCODE_D)
+		    SMOL_SetField(&translation, 0, 3, translation.fields[3] - posVel);
 	    }
 	}
 	
