@@ -33,7 +33,7 @@ void SR_TexBufferRead(const SR_TexBuffer2D *buffer, void* outValue, size_t x, si
     memcpy(outValue, &buffer->values[offset], fsize);
 }
 
-void SR_TexBufferSample(const SR_TexBuffer2D *buffer, void* outValue, double x, double y)
+void SR_TexBufferSample(const SR_TexBuffer2D *buffer, void* outValue, float x, float y)
 /* Sample position with bilinear interpolation. */
 {
     // Sample positions
@@ -59,8 +59,8 @@ void SR_TexBufferSample(const SR_TexBuffer2D *buffer, void* outValue, double x, 
     SR_TexBufferRead(buffer, &samples[3*fsize], x1, y1);
 
     // Interpolation
-    const double tx = x - floor(x); // [0, 1]
-    const double ty = y - floor(y); // [0, 1]
+    const float tx = x - floor(x); // [0, 1]
+    const float ty = y - floor(y); // [0, 1]
     
     switch(type) {
     case SR_TEX_TYPE_UINT:

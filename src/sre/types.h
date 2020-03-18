@@ -67,10 +67,10 @@ enum SR_TEXTURE_FORMAT {
 };
 
 // Common vector types
-typedef struct { double x; }          SR_Vec1f;
-typedef struct { double x, y; }       SR_Vec2f;
-typedef struct { double x, y, z; }    SR_Vec3f;
-typedef struct { double x, y, z, w; } SR_Vec4f;
+typedef struct { float x; }          SR_Vec1f;
+typedef struct { float x, y; }       SR_Vec2f;
+typedef struct { float x, y, z; }    SR_Vec3f;
+typedef struct { float x, y, z, w; } SR_Vec4f;
 typedef union {
     SR_Vec1f vec1f;
     SR_Vec2f vec2f;
@@ -93,7 +93,7 @@ typedef struct {
 
 // Vertex, index and attribute data collection
 typedef struct {
-    double* vertexBuffer;
+    float* vertexBuffer;
     size_t* indexBuffer;
     size_t vertexBufferSize;
     size_t indexBufferSize;

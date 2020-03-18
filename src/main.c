@@ -2,10 +2,10 @@
 #include <time.h>
 #include <math.h>
 #include "SDL2/SDL.h"
-#include <matrix.h>
+#include <smol.h>
 #include "config.h"
 #include "sre/sre.h"
-#include "sre/objloader.h"
+#include "bemo/bemo.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -85,9 +85,9 @@ void init ()
 
     SMOL_PerspectiveMatrix(&_perspectiveMat, 90, _texWidth/_texHeight, 0.5, 100);
     SMOL_CameraMatrix(&_viewMat,
-		      (double[]){0.0, 0.0, 10.0},
-		      (double[]){0.0, 0.0, 0.0},
-		      (double[]){0.0, 1.0, 0.0});
+		      (float[]){0.0, 0.0, 10.0},
+		      (float[]){0.0, 0.0, 0.0},
+		      (float[]){0.0, 1.0, 0.0});
 
     for (int i = 0; i < NUM_CUBES; i++) {
 	SMOL_EyeMatrix(&_cubeMats[i], 4);
@@ -99,7 +99,7 @@ void init ()
     _theVao = SR_GenVertexArray();
     SR_BindVertexArray(_theVao);
   
-     double vertices[] = {
+    float vertices[] = {
 	 // front           // color         // texture coordinates
 	 -1.0, -1.0,  1.0,  1.0, 0.25, 0.5,  0.0, 0.0, // bottom left
 	  1.0, -1.0,  1.0,  1.0, 0.45, 0.0,  1.0, 0.0, // bottom right 
@@ -132,9 +132,9 @@ void init ()
 
     // Vertex Input
     SR_SetVertexAttributeCount(3);
-    SR_SetVertexAttribute(0, 3, sizeof(double)*8, 0);
-    SR_SetVertexAttribute(1, 3, sizeof(double)*8, sizeof(double)*3);
-    SR_SetVertexAttribute(2, 2, sizeof(double)*8, sizeof(double)*6);
+    SR_SetVertexAttribute(0, 3, sizeof(float)*8, 0);
+    SR_SetVertexAttribute(1, 3, sizeof(float)*8, sizeof(float)*3);
+    SR_SetVertexAttribute(2, 2, sizeof(float)*8, sizeof(float)*6);
     // Vertex Output
     SR_SetVertexStageOutputCount(2);
 
@@ -147,9 +147,6 @@ void init ()
     _image.width = width;
     _image.height = height;
     _image.format = SR_TEX_FORMAT_RGBA8;
-
-    SR_OBJ_Scene scene;
-    SR_OBJ_LoadScene(&scene, "cube.obj");
 }
 
 int main ()
@@ -212,8 +209,8 @@ int main ()
 	double t = _currTime/6000000.0;
 	for (int i = 0; i < NUM_CUBES; i++) {
 	    SMOL_Matrix rotX, rotY;
-	    SMOL_RotationMatrix(&rotX, (double[]){1.0, 0.0, 0.0}, (rotation[0])*(M_PI/180));
-	    SMOL_RotationMatrix(&rotY, (double[]){0.0, 1.0, 0.0}, (rotation[1])*(M_PI/180));
+	    SMOL_RotationMatrix(&rotX, (float[]){1.0, 0.0, 0.0}, (rotation[0])*(M_PI/180));
+	    SMOL_RotationMatrix(&rotY, (float[]){0.0, 1.0, 0.0}, (rotation[1])*(M_PI/180));
 	    
 	    SMOL_MultiplyV(&_modelMat, 4, &_cubeMats[i], &rotX, &rotY, &translation);
 

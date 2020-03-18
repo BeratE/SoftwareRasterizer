@@ -6,7 +6,7 @@ cmake_minimum_required (VERSION 3.15)
 ### General Project Settings
 project (RealTimeGraphics C)
 set (EXECUTABLE_NAME "rtg")
-set(CMAKE_BUILD_TYPE Debug)
+# set(CMAKE_BUILD_TYPE Debug)
 
 ### Directory Structure
 set (SRC_DIR "${CMAKE_SOURCE_DIR}/src")     # Source Files
@@ -22,7 +22,6 @@ find_package(SDL2 REQUIRED)
 
 set (INCS ${INC_DIR} ${SDL2_INCLUDE_DIRS}) # Include directories for compiling
 set (LIBS GL dl m smol ${SDL2_LIBRARIES})  # Libraries to link target against
-
 
 ###
 ### Everything below this line will not be needed to be edited in general.
@@ -41,7 +40,7 @@ configure_file (
   "${CMAKE_SOURCE_DIR}/cmake/config.h.in"
   "${SRC_DIR}/config.h")
 
-### Create and Link Executable
+### Executable
 set(LIBRARY_OUTPUT_PATH ${LIB_DIR})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${BIN_DIR})
 
@@ -50,7 +49,3 @@ include_directories(${INCS}) # Include these targets for the compiling process
 
 # Main Source directory
 add_subdirectory(src)
-
-# Unit testing
-enable_testing()
-add_subdirectory(test)

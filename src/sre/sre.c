@@ -37,10 +37,10 @@ static inline void collectVertexAttribs(SR_Vecf *attribs, size_t elementIndex)
 	    + (elementIndex * va.stride);
 	
 	switch (va.count) {
-	case 4: attribs[ai].vec4f.w = *(((double*)pVertexData)+3); /* FALLTHRU */
-	case 3: attribs[ai].vec3f.z = *(((double*)pVertexData)+2); /* FALLTHRU */
-	case 2: attribs[ai].vec2f.y = *(((double*)pVertexData)+1); /* FALLTHRU */
-	case 1: attribs[ai].vec1f.x = *(((double*)pVertexData)+0);
+	case 4: attribs[ai].vec4f.w = *(((float*)pVertexData)+3); /* FALLTHRU */
+	case 3: attribs[ai].vec3f.z = *(((float*)pVertexData)+2); /* FALLTHRU */
+	case 2: attribs[ai].vec2f.y = *(((float*)pVertexData)+1); /* FALLTHRU */
+	case 1: attribs[ai].vec1f.x = *(((float*)pVertexData)+0);
 	    break;
 	}
     }

@@ -1,5 +1,5 @@
 #include <string.h>
-#include <matrix.h>
+#include <smol.h>
 #include "sre/sre.h"
 
 /* Global state */
@@ -21,7 +21,7 @@ void vertexShader(size_t count, SR_Vecf *attribs, SR_Vec4f *vPos)
     SR_Vec3f aColor = attribs[1].vec3f;
     SR_Vec2f aUV = attribs[2].vec2f;
     
-    SMOL_Matrix p = (SMOL_Matrix){.nRows = 4, .nCols = 1, .fields = (double*)&aPos};
+    SMOL_Matrix p = (SMOL_Matrix){.nRows = 4, .nCols = 1, .fields = (float*)&aPos};
     p.fields[3] = 1.0;
    
     SMOL_Matrix mvp;
@@ -29,7 +29,7 @@ void vertexShader(size_t count, SR_Vecf *attribs, SR_Vec4f *vPos)
 
     // Set Vertex Position
     SMOL_Multiply(&p, &mvp, &p);
-    memcpy(vPos, p.fields, sizeof(double)*4);
+    memcpy(vPos, p.fields, sizeof(float)*4);
 
     // Set Vertex Output
     SR_SetVertexStageOutput(0, (SR_Vecf*)&aColor);
