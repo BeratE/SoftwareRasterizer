@@ -127,12 +127,20 @@ typedef void (*SR_Write)(SR_FrameBuffer *buffer, const SR_VecScreen *pos,
 
 // Model loading
 typedef struct {
+    int primitiveType;
+    int *indices;
+} SR_Face;
+
+typedef struct {
     char *name;
-    size_t *faces;
-    float *vertices;
-    float *normals;
+    size_t nFaces;
+    size_t nTextureUVs;
+    size_t nVertices;
+    size_t nNormals;
+    SR_Face *faces;
     float *textureUVs;
-    size_t nVertices, nNormals, nTextureUVs, nFaces;
+    float *vertices;
+    float *normals;    
 } SR_Mesh;
 
 #endif // TYPES_H
