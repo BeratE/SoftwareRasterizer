@@ -122,8 +122,17 @@ typedef struct {
 } SR_Pipeline;
 
 // Write functions
-typedef void(*SR_Write)(SR_FrameBuffer *buffer,
-			const SR_VecScreen *pos,
-			const SR_Pipeline *pipeline);
+typedef void (*SR_Write)(SR_FrameBuffer *buffer, const SR_VecScreen *pos,
+                         const SR_Pipeline *pipeline);
+
+// Model loading
+typedef struct {
+    char *name;
+    size_t *faces;
+    float *vertices;
+    float *normals;
+    float *textureUVs;
+    size_t nVertices, nNormals, nTextureUVs, nFaces;
+} SR_Mesh;
 
 #endif // TYPES_H

@@ -48,4 +48,7 @@ void SR_WritePixel(SR_FrameBuffer *buffer, const SR_VecScreen *pos, const void* 
 void SR_WriteLine(SR_FrameBuffer *buffer, const SR_VecScreen *pos, const SR_Pipeline* pipeline);
 void SR_WriteTriangle(SR_FrameBuffer *buffer, const SR_VecScreen *pos, const SR_Pipeline* pipeline);
 
+// Models and Assets
+int SR_LoadMesh(SR_Mesh *scene, const char* filepath);
+
 #endif // SRE_H

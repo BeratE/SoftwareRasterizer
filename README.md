@@ -1,4 +1,4 @@
-# The C Real Time Graphics Project
+# C Real-Time Software Rasterizer
 
 ![Cubes](rtg.png)
 

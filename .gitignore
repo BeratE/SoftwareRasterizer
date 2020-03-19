@@ -20,6 +20,8 @@ tramp
 .\#*
 
 # Other
+.clangd
 build
 bin
+lib
 stb_image.h

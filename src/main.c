@@ -5,7 +5,6 @@
 #include <smol.h>
 #include "config.h"
 #include "sre/sre.h"
-#include "bemo/bemo.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
