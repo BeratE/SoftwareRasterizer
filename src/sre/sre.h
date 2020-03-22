@@ -2,7 +2,8 @@
 #define SRE_H
 /* Software rasterization pipeline. */
 
-#include "types.h"
+#include "sredefs.h"
+#include "sretypes.h"
 
 // Setup, Shutdown
 void SR_Init();
@@ -49,6 +50,8 @@ void SR_WriteLine(SR_FrameBuffer *buffer, const SR_VecScreen *pos, const SR_Pipe
 void SR_WriteTriangle(SR_FrameBuffer *buffer, const SR_VecScreen *pos, const SR_Pipeline* pipeline);
 
 // Models and Assets
-int SR_LoadMesh(SR_Mesh *mesh, const char* filepath);
+int SR_LoadMesh(SR_Mesh *mesh, const char *filepath);
+int SR_PrintMesh(SR_Mesh *mesh);
+int SR_IndexedMeshVertexData(SR_Mesh *mesh, float *vertexData, size_t *indices);
 
 #endif // SRE_H

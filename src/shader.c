@@ -38,6 +38,7 @@ void vertexShader(size_t count, SR_Vecf *attribs, SR_Vec4f *vPos)
     SMOL_FreeV(2, &p, &mvp);
 }
 
+
 void fragmentShader(size_t count, SR_Vecf *attribs, SR_Vec4f *fColor)
 {
     if (count < 2)

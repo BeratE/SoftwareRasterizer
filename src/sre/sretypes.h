@@ -1,36 +1,10 @@
-#ifndef TYPES_H
-#define TYPES_H
-/* Common shared definitions, typedefs and structs. */
+/* Declarations and definitions of common typedefs and structs. */
+
+#ifndef SRETYPES_H
+#define SRETYPES_H
 
 #include <stdint.h>
 #include <stdlib.h>
-
-/* Macros */
-
-#define MIN3(a, b, c) (a < b) ? (a < c ? a : c) : (b < c ? b : c)
-#define MAX3(a, b, c) (a > b) ? (a > c ? a : c) : (b > c ? b : c)
-#define CLAMP(x, a, b) (x < b) ? ((x < a) ? a : x) : b // clamp x between (a, b)
-
-/* ~/Macros/~ */
-
-// Common Constants and Enumerations
-enum SR_PRIMITIVE_TYPE{
-    SR_POINTS    = 1,
-    SR_LINES     = 2,
-    SR_TRIANGLES = 3};
-
-enum SR_BUFFER_TYPE{
-    SR_VERTEX_BUFFER,
-    SR_INDEX_BUFFER};
-
-enum SR_SHADER_TYPE{
-    SR_VERTEX_SHADER,
-    SR_FRAGMENT_SHADER };
-
-enum SR_RENDER_TARGET_BIT{
-    SR_COLOR_BUFFER_BIT = 1,
-    SR_DEPTH_BUFFER_BIT = 2};
-
 
 // Texturebuffer
 typedef struct {
@@ -40,31 +14,6 @@ typedef struct {
     uint8_t *values;
 } SR_TexBuffer2D;
 #define SR_NULL_TEXBUFFER (SR_TexBuffer2D){.width=0,.height=0,.format=0,.values=NULL}
-
-// Texture Format
-enum SR_TEXTURE_FORMAT_MASK {
-    SR_TEX_FMTM_TYPE   = 0xF000,
-    SR_TEX_FMTM_NCOMPS = 0x00F0,
-    SR_TEX_FMTM_NBYTES = 0x000F,
-};
-enum SR_TEXTURE_FORMAT_TYPE {
-    SR_TEX_TYPE_UINT  = 0x0000,
-    SR_TEX_TYPE_FLOAT = 0x1000,
-};
-enum SR_TEXTURE_FORMAT {
-    // [Type | Num Components | 0 | Num Bytes]
-    // Composite Integer Types - 0
-    SR_TEX_FORMAT_R8     = SR_TEX_TYPE_UINT |(1 << 4) | sizeof(uint8_t),
-    SR_TEX_FORMAT_RG8    = SR_TEX_TYPE_UINT |(2 << 4) | sizeof(uint8_t),
-    SR_TEX_FORMAT_RGB8   = SR_TEX_TYPE_UINT |(3 << 4) | sizeof(uint8_t),
-    SR_TEX_FORMAT_RGBA8  = SR_TEX_TYPE_UINT |(4 << 4) | sizeof(uint8_t),
-    SR_TEX_FORMAT_R16    = SR_TEX_TYPE_UINT |(1 << 4) | sizeof(uint16_t),
-    SR_TEX_FORMAT_RG16   = SR_TEX_TYPE_UINT |(2 << 4) | sizeof(uint16_t),
-    SR_TEX_FORMAT_RGB16  = SR_TEX_TYPE_UINT |(3 << 4) | sizeof(uint16_t),
-    SR_TEX_FORMAT_RGBA16 = SR_TEX_TYPE_UINT |(4 << 4) | sizeof(uint16_t),
-    // Floating Point Types - 1
-    SR_TEX_FORMAT_F32    = SR_TEX_TYPE_FLOAT | (1 << 4) | sizeof(float),
-};
 
 // Common vector types
 typedef struct { float x; }          SR_Vec1f;
@@ -108,9 +57,9 @@ typedef struct {
 } SR_FrameBuffer;
 
 // Shader functions
-typedef void(*SR_ShaderCB)(size_t attributeCount,
-			 SR_Vecf* attributes,
-			 SR_Vec4f* output);
+typedef void(*SR_ShaderCB)(size_t attributeCount, // Number of input attributes
+			   SR_Vecf* attributes, // Array of input attribes
+			   SR_Vec4f* output); // Single vec4 output attribute
 
 // Collection of shader objects in a pipeline
 typedef struct {
@@ -140,7 +89,7 @@ typedef struct {
     SR_Face *faces;
     float *textureUVs;
     float *vertices;
-    float *normals;    
+    float *normals;
 } SR_Mesh;
 
-#endif // TYPES_H
+#endif // SRETYPES_H

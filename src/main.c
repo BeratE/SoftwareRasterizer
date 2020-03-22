@@ -13,8 +13,8 @@
 SDL_Window *_window = NULL;
 SDL_Renderer *_renderer = NULL;
 
-unsigned int _texWidth = 600;
-unsigned int _texHeight = 600;
+unsigned int _texWidth = 400;
+unsigned int _texHeight = 400;
 SDL_Texture* _texture = NULL;
 
 const int NUM_CUBES = 1;
@@ -97,6 +97,10 @@ void init ()
     
     _theVao = SR_GenVertexArray();
     SR_BindVertexArray(_theVao);
+
+    // Load Mesh Data
+    SR_Mesh cubeMesh;
+    SR_LoadMesh(&cubeMesh, "cube.obj");
   
     float vertices[] = {
 	 // front           // color         // texture coordinates
@@ -126,8 +130,8 @@ void init ()
 	 6, 7, 3
     };
     
-    SR_SetBufferData(SR_VERTEX_BUFFER, vertices, sizeof(vertices));
-    SR_SetBufferData(SR_INDEX_BUFFER, indices, sizeof(indices));
+    SR_SetBufferData(SR_BT_VERTEX_BUFFER, vertices, sizeof(vertices));
+    SR_SetBufferData(SR_BT_INDEX_BUFFER, indices, sizeof(indices));
 
     // Vertex Input
     SR_SetVertexAttributeCount(3);
@@ -137,8 +141,8 @@ void init ()
     // Vertex Output
     SR_SetVertexStageOutputCount(2);
 
-    SR_BindShader(SR_VERTEX_SHADER, &vertexShader);
-    SR_BindShader(SR_FRAGMENT_SHADER, &fragmentShader);
+    SR_BindShader(SR_ST_VERTEX_SHADER, &vertexShader);
+    SR_BindShader(SR_ST_FRAGMENT_SHADER, &fragmentShader);
 
 
     int width, height, nChannels;
@@ -203,7 +207,7 @@ int main ()
 	}
 	
 	// Rendering
-	SR_Clear(SR_COLOR_BUFFER_BIT | SR_DEPTH_BUFFER_BIT);
+	SR_Clear(SR_RTB_COLOR_BUFFER_BIT | SR_RTB_DEPTH_BUFFER_BIT);
 
 	double t = _currTime/6000000.0;
 	for (int i = 0; i < NUM_CUBES; i++) {
@@ -213,7 +217,7 @@ int main ()
 	    
 	    SMOL_MultiplyV(&_modelMat, 4, &_cubeMats[i], &rotX, &rotY, &translation);
 
-	    SR_DrawArray(SR_TRIANGLES, 36, 0);
+	    SR_DrawArray(SR_PT_TRIANGLES, 36, 0);
 
 	    SMOL_FreeV(3, &rotX, &rotY, &_modelMat);
 	}

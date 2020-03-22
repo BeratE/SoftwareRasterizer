@@ -141,6 +141,8 @@ int SR_PrintMesh(SR_Mesh *mesh)
 	}
 	printf("\n");
     }
+
+    return 0;
 }
 
 
@@ -148,4 +150,6 @@ int SR_IndexedMeshVertexData(SR_Mesh *mesh, float *vertexData, size_t *indices)
 {
     vertexData = malloc((mesh->nVertices+mesh->nTextureUVs+mesh->nNormals) * sizeof(float));
     indices = malloc(mesh->faces->primitiveType * mesh->nFaces * sizeof(size_t));
+
+    return 0;
 }

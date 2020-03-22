@@ -63,7 +63,7 @@ void SR_TexBufferSample(const SR_TexBuffer2D *buffer, void* outValue, float x, f
     const float ty = y - floor(y); // [0, 1]
     
     switch(type) {
-    case SR_TEX_TYPE_UINT:
+    case SR_TF_TYPE_UINT:
 	for (uint8_t i = 0; i < ncomp; i++) {
 	    // Collect values of sample components
 	    size_t values[4] = {0};
@@ -80,7 +80,7 @@ void SR_TexBufferSample(const SR_TexBuffer2D *buffer, void* outValue, float x, f
 	}
 	break;
 	
-    case SR_TEX_TYPE_FLOAT:
+    case SR_TF_TYPE_FLOAT:
 	for (uint16_t i = 0; i < ncomp; i++) {
 	    // Interpolate in x direction
 	    float sx1 = (1-tx)*((float*)samples)[(0*ncomp)+i] + tx*((float*)samples)[(1*ncomp)+i];
@@ -135,17 +135,17 @@ size_t SR_TexBufferFormatSize(const SR_TexBuffer2D *buffer)
 uint16_t SR_TexBufferFormatType(const SR_TexBuffer2D *buffer)
 /* Return the texture buffer format type. */
 {
-    return (buffer->format & SR_TEX_FMTM_TYPE);
+    return (buffer->format & SR_TF_MASK_TYPE);
 }
 
 uint16_t SR_TexBufferFormatNComps(const SR_TexBuffer2D *buffer)
 /* Return the number of components of the texture buffer formats. */
 {
-    return (buffer->format & SR_TEX_FMTM_NCOMPS) >> 4;
+    return (buffer->format & SR_TF_MASK_NCOMPS) >> 4;
 }
 
 uint16_t SR_TexBufferFormatNBytes(const SR_TexBuffer2D *buffer)
 /* Return the number of bytes per components of the texture buffer format. */
 {
-    return (buffer->format & SR_TEX_FMTM_NBYTES);
+    return (buffer->format & SR_TF_MASK_NBYTES);
 }
