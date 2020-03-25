@@ -9,18 +9,18 @@ set (SRE_FILES
   ${SRE_DIR}/sre.h
   ${SRE_DIR}/sredefs.h
   ${SRE_DIR}/sretypes.h
+  ${SRE_DIR}/srmeshtypes.h
+  ${SRE_DIR}/srmesh.h
   # Source
   ${SRE_DIR}/sre.c
   ${SRE_DIR}/sretexbuffer.c
   ${SRE_DIR}/srerasterizer.c
-  ${SRE_DIR}/sreassl.c)
+  ${SRE_DIR}/srmesh.c)
 
 
 ### Application files
 set (APP_FILES
   # Header
-  ${SRC_DIR}/stb_image.h
-  ${SRC_DIR}/config.h
   # Source
   ${SRC_DIR}/main.c
   ${SRC_DIR}/shader.c)

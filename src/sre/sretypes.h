@@ -1,5 +1,4 @@
 /* Declarations and definitions of common typedefs and structs. */
-
 #ifndef SRETYPES_H
 #define SRETYPES_H
 
@@ -73,23 +72,5 @@ typedef struct {
 // Write functions
 typedef void (*SR_Write)(SR_FrameBuffer *buffer, const SR_VecScreen *pos,
                          const SR_Pipeline *pipeline);
-
-// Model loading
-typedef struct {
-    int primitiveType;
-    int *indices;
-} SR_Face;
-
-typedef struct {
-    char *name;
-    size_t nFaces;
-    size_t nTextureUVs;
-    size_t nVertices;
-    size_t nNormals;
-    SR_Face *faces;
-    float *textureUVs;
-    float *vertices;
-    float *normals;
-} SR_Mesh;
 
 #endif // SRETYPES_H

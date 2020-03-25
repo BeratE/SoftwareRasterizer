@@ -32,7 +32,7 @@ set (PROJECT_VERSION_MINOR 0)
 
 configure_file (
   "${CMAKE_SOURCE_DIR}/cmake/config.h.in"
-  "${SRC_DIR}/config.h")
+  "${INC_DIR}/config.h")
 
 
 # Compiler Config

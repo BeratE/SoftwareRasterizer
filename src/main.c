@@ -5,6 +5,7 @@
 #include <smol.h>
 #include "config.h"
 #include "sre/sre.h"
+#include "sre/srmesh.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -99,45 +100,60 @@ void init ()
     SR_BindVertexArray(_theVao);
 
     // Load Mesh Data
-    SR_Mesh cubeMesh;
-    SR_LoadMesh(&cubeMesh, "cube.obj");
-  
-    float vertices[] = {
-	 // front           // color         // texture coordinates
-	 -1.0, -1.0,  1.0,  1.0, 0.25, 0.5,  0.0, 0.0, // bottom left
-	  1.0, -1.0,  1.0,  1.0, 0.45, 0.0,  1.0, 0.0, // bottom right 
-	  1.0,  1.0,  1.0,  1.0, 0.75, 0.5,  1.0, 1.0, // top right
-	 -1.0,  1.0,  1.0,  1.0, 0.10, 0.0,  0.0, 1.0, // top left
-	 // back            // color         // texture coordinates
-	 -1.0, -1.0, -1.0,  0.0, 0.10, 0.5,  0.0, 0.0, // bottom left 
-	  1.0, -1.0, -1.0,  0.0, 0.50, 0.2,  1.0, 0.0, // bottom right
-	  1.0,  1.0, -1.0,  0.5, 0.75, 0.2,  1.0, 1.0, // top right
-	 -1.0,  1.0, -1.0,  0.5, 0.55, 1.0,  0.0, 1.0  // top left
-     };
+    //SR_Mesh cubeMesh;
+    //SR_LoadMesh(&cubeMesh, "cube.obj");
 
-     size_t indices[] = {
-	 0, 1, 2, 	 // front
-	 2, 3, 0,
-	 1, 5, 6,	 // right
-	 6, 2, 1,
-	 7, 6, 5,	 // back
-	 5, 4, 7,
-	 4, 0, 3,	 // left
-	 3, 7, 4,
-	 4, 5, 1,	 // bottom
-	 1, 0, 4,
-	 3, 2, 6,	 // top
-	 6, 7, 3
-    };
+    SRM_Mesh mesh;
+    SRM_LoadMesh(&mesh, "/home/berat/Projects/cepples/rtg/assets/cube.obj");
+    SRM_PrintMesh(&mesh);
+
+    // Collect Indexed Mesh Vertex Data
+    size_t vertexCount;
+    SRM_IndexedMeshVertexData(&mesh, NULL, NULL, &vertexCount);
+
+    const size_t INDEX_COUNT = mesh.nFaces * 3;
+    const size_t VDATA_COUNT = vertexCount * 8;
+    size_t indices[INDEX_COUNT];
+    float vertexData[VDATA_COUNT];
     
-    SR_SetBufferData(SR_BT_VERTEX_BUFFER, vertices, sizeof(vertices));
+    SRM_IndexedMeshVertexData(&mesh, vertexData, indices, NULL);
+  
+    /* float vertices[] = { */
+    /* 	 // front           // color         // texture coordinates */
+    /* 	 -1.0, -1.0,  1.0,  1.0, 0.25, 0.5,  0.0, 0.0, // bottom left */
+    /* 	  1.0, -1.0,  1.0,  1.0, 0.45, 0.0,  1.0, 0.0, // bottom right  */
+    /* 	  1.0,  1.0,  1.0,  1.0, 0.75, 0.5,  1.0, 1.0, // top right */
+    /* 	 -1.0,  1.0,  1.0,  1.0, 0.10, 0.0,  0.0, 1.0, // top left */
+    /* 	 // back            // color         // texture coordinates */
+    /* 	 -1.0, -1.0, -1.0,  0.0, 0.10, 0.5,  0.0, 0.0, // bottom left  */
+    /* 	  1.0, -1.0, -1.0,  0.0, 0.50, 0.2,  1.0, 0.0, // bottom right */
+    /* 	  1.0,  1.0, -1.0,  0.5, 0.75, 0.2,  1.0, 1.0, // top right */
+    /* 	 -1.0,  1.0, -1.0,  0.5, 0.55, 1.0,  0.0, 1.0  // top left */
+    /*  }; */
+
+    /*  size_t indices[] = { */
+    /* 	 0, 1, 2, 	 // front */
+    /* 	 2, 3, 0, */
+    /* 	 1, 5, 6,	 // right */
+    /* 	 6, 2, 1, */
+    /* 	 7, 6, 5,	 // back */
+    /* 	 5, 4, 7, */
+    /* 	 4, 0, 3,	 // left */
+    /* 	 3, 7, 4, */
+    /* 	 4, 5, 1,	 // bottom */
+    /* 	 1, 0, 4, */
+    /* 	 3, 2, 6,	 // top */
+    /* 	 6, 7, 3 */
+    /* }; */
+    
+    SR_SetBufferData(SR_BT_VERTEX_BUFFER, vertexData, sizeof(vertexData));
     SR_SetBufferData(SR_BT_INDEX_BUFFER, indices, sizeof(indices));
 
     // Vertex Input
     SR_SetVertexAttributeCount(3);
-    SR_SetVertexAttribute(0, 3, sizeof(float)*8, 0);
-    SR_SetVertexAttribute(1, 3, sizeof(float)*8, sizeof(float)*3);
-    SR_SetVertexAttribute(2, 2, sizeof(float)*8, sizeof(float)*6);
+    SR_SetVertexAttribute(0, 3, sizeof(float)*8, 0); // Vertices
+    SR_SetVertexAttribute(1, 2, sizeof(float)*8, sizeof(float)*3); // UV
+    SR_SetVertexAttribute(2, 3, sizeof(float)*8, sizeof(float)*5); // Normals
     // Vertex Output
     SR_SetVertexStageOutputCount(2);
 
