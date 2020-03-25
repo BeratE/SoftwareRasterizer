@@ -202,8 +202,11 @@ int SRM_IndexedMeshVertexData(SRM_Mesh *mesh, float *outVertexData,
     
     if (outVertexCount != NULL)
 	*outVertexCount = nVerts;
-    if (outIndices != NULL)
-	memcpy(outIndices, indices, MAX_VERT_COUNT*sizeof(size_t));
+    if (outIndices != NULL) {
+	// Convert back to 0-based indexing
+	for (size_t i = 0; i < MAX_VERT_COUNT; i++)
+	    outIndices[i] = indices[i] - 1;
+    }
     if (outVertexData != NULL)
 	memcpy(outVertexData, vData, nVerts*8*sizeof(float));
 

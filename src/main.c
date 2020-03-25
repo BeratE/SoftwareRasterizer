@@ -99,10 +99,8 @@ void init ()
     _theVao = SR_GenVertexArray();
     SR_BindVertexArray(_theVao);
 
-    // Load Mesh Data
-    //SR_Mesh cubeMesh;
-    //SR_LoadMesh(&cubeMesh, "cube.obj");
 
+    // Load Mesh
     SRM_Mesh mesh;
     SRM_LoadMesh(&mesh, "/home/berat/Projects/cepples/rtg/assets/cube.obj");
     SRM_PrintMesh(&mesh);
@@ -111,40 +109,12 @@ void init ()
     size_t vertexCount;
     SRM_IndexedMeshVertexData(&mesh, NULL, NULL, &vertexCount);
 
-    const size_t INDEX_COUNT = mesh.nFaces * 3;
     const size_t VDATA_COUNT = vertexCount * 8;
-    size_t indices[INDEX_COUNT];
+    const size_t INDEX_COUNT = mesh.nFaces * 3;
     float vertexData[VDATA_COUNT];
+    size_t indices[INDEX_COUNT];
     
     SRM_IndexedMeshVertexData(&mesh, vertexData, indices, NULL);
-  
-    /* float vertices[] = { */
-    /* 	 // front           // color         // texture coordinates */
-    /* 	 -1.0, -1.0,  1.0,  1.0, 0.25, 0.5,  0.0, 0.0, // bottom left */
-    /* 	  1.0, -1.0,  1.0,  1.0, 0.45, 0.0,  1.0, 0.0, // bottom right  */
-    /* 	  1.0,  1.0,  1.0,  1.0, 0.75, 0.5,  1.0, 1.0, // top right */
-    /* 	 -1.0,  1.0,  1.0,  1.0, 0.10, 0.0,  0.0, 1.0, // top left */
-    /* 	 // back            // color         // texture coordinates */
-    /* 	 -1.0, -1.0, -1.0,  0.0, 0.10, 0.5,  0.0, 0.0, // bottom left  */
-    /* 	  1.0, -1.0, -1.0,  0.0, 0.50, 0.2,  1.0, 0.0, // bottom right */
-    /* 	  1.0,  1.0, -1.0,  0.5, 0.75, 0.2,  1.0, 1.0, // top right */
-    /* 	 -1.0,  1.0, -1.0,  0.5, 0.55, 1.0,  0.0, 1.0  // top left */
-    /*  }; */
-
-    /*  size_t indices[] = { */
-    /* 	 0, 1, 2, 	 // front */
-    /* 	 2, 3, 0, */
-    /* 	 1, 5, 6,	 // right */
-    /* 	 6, 2, 1, */
-    /* 	 7, 6, 5,	 // back */
-    /* 	 5, 4, 7, */
-    /* 	 4, 0, 3,	 // left */
-    /* 	 3, 7, 4, */
-    /* 	 4, 5, 1,	 // bottom */
-    /* 	 1, 0, 4, */
-    /* 	 3, 2, 6,	 // top */
-    /* 	 6, 7, 3 */
-    /* }; */
     
     SR_SetBufferData(SR_BT_VERTEX_BUFFER, vertexData, sizeof(vertexData));
     SR_SetBufferData(SR_BT_INDEX_BUFFER, indices, sizeof(indices));
