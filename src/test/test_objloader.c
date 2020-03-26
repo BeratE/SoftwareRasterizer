@@ -3,7 +3,7 @@
 
 int main () {
     SRM_Mesh mesh;
-    SRM_LoadMesh(&mesh, "/home/berat/Projects/cepples/rtg/assets/cube.obj");
+    SRM_LoadMesh(&mesh, "/home/berat/Projects/cepples/rtg/assets/barrel.obj");
     SRM_PrintMesh(&mesh);
 
     // Collect Indexed Mesh Vertex Data
@@ -35,6 +35,7 @@ int main () {
 	    printf(", ");
     }
 
+    SRM_DeleteMesh(&mesh);
     
     return 0;
 }

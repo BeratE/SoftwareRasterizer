@@ -8,6 +8,8 @@ int SRM_LoadMesh(SRM_Mesh *mesh, const char *filepath);
 int SRM_PrintMesh(SRM_Mesh *mesh);
 
 int SRM_IndexedMeshVertexData(SRM_Mesh *mesh, float *outVertexData,
-			      size_t *outIndices, size_t *outVertexCount);
+                              size_t *outIndices, size_t *outVertexCount);
+
+void SRM_DeleteMesh(SRM_Mesh *mesh);
 
 #endif // SRMESH_H

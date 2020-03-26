@@ -12,7 +12,9 @@ typedef struct {
     uint16_t format;
     uint8_t *values;
 } SR_TexBuffer2D;
-#define SR_NULL_TEXBUFFER (SR_TexBuffer2D){.width=0,.height=0,.format=0,.values=NULL}
+#define SR_NULL_TEXBUFFER (SR_TexBuffer2D) { \
+    .width = 0, .height = 0, .format = 0,    \
+    .values = NULL}                          \
 
 // Common vector types
 typedef struct { float x; }          SR_Vec1f;

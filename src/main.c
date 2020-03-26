@@ -30,6 +30,7 @@ SMOL_Matrix _modelMat;
 
 SR_TexBuffer2D _image;
 
+size_t _vDataCount, _indexCount;
 size_t _theVao;
 /* ~/Global state/~ */
 
@@ -102,23 +103,24 @@ void init ()
 
     // Load Mesh
     SRM_Mesh mesh;
-    SRM_LoadMesh(&mesh, "/home/berat/Projects/cepples/rtg/assets/cube.obj");
-    SRM_PrintMesh(&mesh);
+    SRM_LoadMesh(&mesh, "/home/berat/Projects/cepples/rtg/assets/barrel.obj");
 
     // Collect Indexed Mesh Vertex Data
     size_t vertexCount;
     SRM_IndexedMeshVertexData(&mesh, NULL, NULL, &vertexCount);
 
-    const size_t VDATA_COUNT = vertexCount * 8;
-    const size_t INDEX_COUNT = mesh.nFaces * 3;
-    float vertexData[VDATA_COUNT];
-    size_t indices[INDEX_COUNT];
+    _vDataCount = vertexCount * 8;
+    _indexCount = mesh.nFaces * 3;
+    float vertexData[_vDataCount];
+    size_t indices[_indexCount];
     
     SRM_IndexedMeshVertexData(&mesh, vertexData, indices, NULL);
     
     SR_SetBufferData(SR_BT_VERTEX_BUFFER, vertexData, sizeof(vertexData));
     SR_SetBufferData(SR_BT_INDEX_BUFFER, indices, sizeof(indices));
 
+    SRM_DeleteMesh(&mesh);
+    
     // Vertex Input
     SR_SetVertexAttributeCount(3);
     SR_SetVertexAttribute(0, 3, sizeof(float)*8, 0); // Vertices
@@ -140,6 +142,8 @@ void init ()
 
 int main ()
 {
+    printf("\n%s Version %d.%d\n", PROJECT_NAME, PROJECT_VERSION_MAJOR, PROJECT_VERSION_MINOR);
+    
     init();
     
     SDL_Event event;
@@ -203,7 +207,7 @@ int main ()
 	    
 	    SMOL_MultiplyV(&_modelMat, 4, &_cubeMats[i], &rotX, &rotY, &translation);
 
-	    SR_DrawArray(SR_PT_TRIANGLES, 36, 0);
+	    SR_DrawArray(SR_PT_TRIANGLES, _indexCount, 0);
 
 	    SMOL_FreeV(3, &rotX, &rotY, &_modelMat);
 	}

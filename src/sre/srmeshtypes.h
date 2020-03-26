@@ -2,7 +2,7 @@
 #ifndef SRMESHTYPES_H
 #define SRMESHTYPES_H
 
-#include <stddef.h>
+#include "sretypes.h"
 
 // Model loading
 typedef struct {
@@ -16,6 +16,7 @@ typedef struct {
 	} *indexTuple; 
     };
 } SRM_Face;
+#define SRM_NULL_FACE (SRM_Face){.primitiveType = 0, .indices = NULL}
 
 typedef struct {
     char *name;
@@ -26,24 +27,29 @@ typedef struct {
     // Vertex Data
     union {
 	float *vertices;
-	struct {
-	    float x, y, z;
-	} *vertexTuples;
+	SR_Vec3f *vertexTuples;
     };
     union {
 	float *textureUVs;
-	struct {
-	    float u, v;
-	} *uvTuples;
+	SR_Vec2f *uvTuples;
     };
     union {
 	float *normals;
-	struct {
-	    float x, y, z;
-	} *normalTuples;
+	SR_Vec3f *normalTuples;
     };
     // Face Data
     SRM_Face *faces;
 } SRM_Mesh;
+#define SRM_NULL_MESH (SRM_Mesh) {      \
+      .name = NULL,			\
+      .vertices = NULL,			\
+      .textureUVs = NULL,		\
+      .normals = NULL,			\
+      .faces = NULL,			\
+      .nFaces = 0,			\
+      .nNormals = 0,			\
+      .nVertices = 0,			\
+      .nTextureUVs = 0}			\
+
 
 #endif // SRMESHTYPES_H

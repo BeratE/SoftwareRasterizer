@@ -1,6 +1,8 @@
-# C Real-Time Software Rasterizer
+# C Real-Time Software Rasterization Engine
 
-![Cubes](rtg.png)
+![Cubes](docs/rtg.png)
+![Barrel](docs/barrel.png)
+![RedMan](docs/man.png)
 
 A small project for the sole purpose of learning the basics of computer graphics and bare bones C programming.
 
@@ -13,27 +15,30 @@ I greatly appreciate any critique and pointers concerning programming style and 
 
 ## Features
 * Triangle Rasterization
-* Trivial Triangle Clipping
 * Vertex & Index Buffers
 * Texture Buffers & Interpolation
 * Vertex Array Objects with Vertex Attributes
 * Perspective Vertex Attribute Interpolation
+* Simple (Wavefront) Mesh Loading
+* Trivial Triangle Clipping
 * Vertex & Fragment Shader
 * Z-buffering
 * Texturing
 
 ## Todo
-* Polygon Clipping
+* Better Model loading capabilities
+* Performant texturing
+* Polygon clipping
 * Mip-Mapping
-* Anisotropic Filtering
+* Anisotropic filtering
 * Geometry Anti-Aliasing
 
 ## Bugs
-* Bresenheim Line Rendering
+* Fix issues with Bresenheim Line Rendering, currently not used
 
 ## Libraries
-The appliccation currently uses SDL2 for hosting the display output and processing input events.
-The single-header-file library stb_images.h is used to load image data into textures.
+* SDL2, hosting display output and processing events
+* stb_images.g, load image data into textures
 
 ## Licence
 This software is published under the GNU GPLv3.

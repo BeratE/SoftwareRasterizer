@@ -33,5 +33,7 @@ add_executable (${EXECUTABLE_NAME} ${APP_FILES})
 target_link_libraries(${EXECUTABLE_NAME} ${LIBS} ${SRE_TGT})
 
 # Unit testing
-enable_testing()
-add_subdirectory(test)
+if (CMAKE_BUILD_TYPE EQUAL Debug)
+  enable_testing()
+  add_subdirectory(test)
+endif()

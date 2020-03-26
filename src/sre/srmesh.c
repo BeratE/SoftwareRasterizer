@@ -1,4 +1,5 @@
 #include "srmesh.h"
+#include "srmeshtypes.h"
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -26,23 +27,16 @@ static void copyLineString(char *lp, char** str)
 }
 
 int SRM_LoadMesh(SRM_Mesh *mesh, const char *filepath)
-/* Return a mesh object created from the contents of the given wavefront file. */
+    /* Return a mesh object created from the contents of the given
+     * wavefront file. */
 {
     FILE *file = fopen(filepath, "r");
     if (file == NULL) {
 	perror("Error opening file");
-	return -1;
+	return 0;
     }
 
-    mesh->faces = NULL;
-    mesh->normals = NULL;
-    mesh->vertices = NULL;
-    mesh->textureUVs = NULL;
-    mesh->nFaces = 0;
-    mesh->nNormals = 0;
-    mesh->nVertices = 0;
-    mesh->nTextureUVs = 0;
-
+    *mesh = SRM_NULL_MESH;
     char line[255];
     while (fgets(line, 255, file) != NULL) {
 	char *lp = line;
@@ -73,9 +67,8 @@ int SRM_LoadMesh(SRM_Mesh *mesh, const char *filepath)
 	    while(*(++lp) == ' ');
 	    ;
 	    mesh->faces = realloc(mesh->faces, (mesh->nFaces+1)*sizeof(SRM_Face));
+	    mesh->faces[mesh->nFaces] = SRM_NULL_FACE;
 	    SRM_Face *face = &mesh->faces[mesh->nFaces];
-	    face->primitiveType = 0;
-	    face->indices = NULL;
 	    
 	    while(*lp != '\0') {
 		face->primitiveType++;
@@ -103,12 +96,12 @@ int SRM_LoadMesh(SRM_Mesh *mesh, const char *filepath)
 
     fclose(file);
 
-    return 0;
+    return 1;
 }
 
 
 int SRM_PrintMesh(SRM_Mesh *mesh)
-/* Print the contents of the given mesh in human readable form. */
+    /* Print the contents of the given mesh in human readable form. */
 {
     printf("Name: %s", mesh->name);
 
@@ -144,11 +137,15 @@ int SRM_PrintMesh(SRM_Mesh *mesh)
 	printf("\n");
     }
 
-    return 0;
+    return 1;
 }
 
 int SRM_IndexedMeshVertexData(SRM_Mesh *mesh, float *outVertexData,
-			      size_t *outIndices, size_t *outVertexCount)
+                              size_t *outIndices, size_t *outVertexCount)
+    /* Parse the data in the mesh into a indexed mesh vertex data format.
+    * The vertices are stored as a continous array of
+    * (vx, vy, vz, u, v, nx, ny,nz). The number of distinct vertex
+    * combinations is returned in the outVertexcount. */
 {
     const size_t VERTS_PER_FACE = 3;
     const size_t MAX_VERT_COUNT = mesh->nFaces * VERTS_PER_FACE;
@@ -210,5 +207,37 @@ int SRM_IndexedMeshVertexData(SRM_Mesh *mesh, float *outVertexData,
     if (outVertexData != NULL)
 	memcpy(outVertexData, vData, nVerts*8*sizeof(float));
 
-    return 0;
+    return 1;
+}
+
+void SRM_DeleteMesh(SRM_Mesh *mesh)
+    /* Frees the memory allocated by a mesh data structure. */
+{
+    if (mesh->name != NULL) {
+	free(mesh->name);
+	mesh->name = NULL;
+    }
+    if (mesh->vertices != NULL) {
+	free(mesh->vertices);
+	mesh->vertices = NULL;
+    }
+    if (mesh->textureUVs != NULL) {
+	free(mesh->textureUVs);
+	mesh->textureUVs = NULL;
+    }
+    if (mesh->normals != NULL) {
+	free(mesh->normals);
+	mesh->normals = NULL;
+    }
+    if (mesh->faces != NULL) {
+	for (size_t i = 0; i < mesh->nFaces; i++)
+	    free(mesh->faces[i].indices);
+	free(mesh->faces);
+	mesh->faces = NULL;
+    }
+    
+    mesh->nFaces = 0;
+    mesh->nNormals = 0;
+    mesh->nVertices = 0;
+    mesh->nTextureUVs = 0;
 }

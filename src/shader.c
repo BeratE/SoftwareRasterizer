@@ -1,6 +1,7 @@
 #include <string.h>
 #include <smol.h>
 #include "sre/sre.h"
+#include "sre/sretypes.h"
 
 /* Global state */
 extern SMOL_Matrix _perspectiveMat;
@@ -54,5 +55,6 @@ void fragmentShader(size_t count, SR_Vecf *attribs, SR_Vec4f *fColor)
     fColor->y = c[1]/255.0;
     fColor->z = c[2]/255.0;
     fColor->w = c[3]/255.0;
+    //*fColor = (SR_Vec4f){.x=1.0, .y=0.0, .z=0.0, .w=1.0};
 }
 /* ~/Shader functions/~ */
