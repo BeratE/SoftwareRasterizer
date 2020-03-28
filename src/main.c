@@ -5,7 +5,7 @@
 #include <smol.h>
 #include "config.h"
 #include "sre/sre.h"
-#include "sre/srmesh.h"
+#include "sre/srmesh/srmesh.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -67,10 +67,7 @@ void init_window()
     SDL_RendererInfo info;
     SDL_GetRendererInfo(_renderer, &info);
     printf("Renderer: %s\n", info.name);
-    printf("Texture formats:\n");
-    for (unsigned int i = 0; i < info.num_texture_formats; i++)
-	printf("%s\n", SDL_GetPixelFormatName(info.texture_formats[i]));
-
+    
     _texture = SDL_CreateTexture(_renderer,
 				 SDL_PIXELFORMAT_ABGR8888,
 				 SDL_TEXTUREACCESS_STREAMING, _texWidth, _texHeight);
@@ -103,18 +100,18 @@ void init ()
 
     // Load Mesh
     SRM_Mesh mesh;
-    SRM_LoadMesh(&mesh, "/home/berat/Projects/cepples/rtg/assets/barrel.obj");
+    SRM_LoadMesh(&mesh, "/home/berat/Projects/assets/Models/sign.obj");
 
     // Collect Indexed Mesh Vertex Data
     size_t vertexCount;
-    SRM_IndexedMeshVertexData(&mesh, NULL, NULL, &vertexCount);
+    SRM_IndexedVertexData(&mesh, NULL, NULL, &vertexCount);
 
     _vDataCount = vertexCount * 8;
     _indexCount = mesh.nFaces * 3;
     float vertexData[_vDataCount];
     size_t indices[_indexCount];
     
-    SRM_IndexedMeshVertexData(&mesh, vertexData, indices, NULL);
+    SRM_IndexedVertexData(&mesh, vertexData, indices, NULL);
     
     SR_SetBufferData(SR_BT_VERTEX_BUFFER, vertexData, sizeof(vertexData));
     SR_SetBufferData(SR_BT_INDEX_BUFFER, indices, sizeof(indices));
@@ -134,7 +131,8 @@ void init ()
 
 
     int width, height, nChannels;
-    _image.values = stbi_load("container.jpg", &width, &height, &nChannels, 4);
+    _image.values = stbi_load("/home/berat/Projects/assets/Textures/sign.png",
+			      &width, &height, &nChannels, 4);
     _image.width = width;
     _image.height = height;
     _image.format = SR_TEX_FORMAT_RGBA8;

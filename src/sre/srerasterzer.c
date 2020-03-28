@@ -5,29 +5,45 @@
 
 /* Static functions */
 
-static inline void mixAttribsTriangle(SR_Vecf *attribs, const SR_VecScreen *fpos, const SR_VecScreen *pos,
-				      const float *baryc, const SR_Pipeline *pipeline)
+static inline void mixAttrTriangle(SR_Vecf *attribs, const SR_VecScreen *fpos,
+                                   const SR_VecScreen *pos, const float *baryc,
+                                   const SR_Pipeline *pipeline)
+    /* Inverse perspective correct screen-space interpolation of given vertex
+     * attributes in the given pipeline. */
 {
-    const size_t ATTRIB_COUNT = pipeline->vertexStageOutputCount;
-    for (size_t i = 0; i < ATTRIB_COUNT; i++) {
-	const SR_Vec4f aiV0 = pipeline->pVertexStageOutput[(ATTRIB_COUNT*0) + i].vec4f;
-	const SR_Vec4f aiV1 = pipeline->pVertexStageOutput[(ATTRIB_COUNT*1) + i].vec4f;
-	const SR_Vec4f aiV2 = pipeline->pVertexStageOutput[(ATTRIB_COUNT*2) + i].vec4f;
+  const size_t ATTR_COUNT = pipeline->vertexStageOutputCount;
+  for (size_t i = 0; i < ATTRIB_COUNT; i++) {
+    const SR_Vec4f aiV0 =
+        pipeline->pVertexStageOutput[(ATTR_COUNT * 0) + i].vec4f;
+    const SR_Vec4f aiV1 =
+        pipeline->pVertexStageOutput[(ATTR_COUNT * 1) + i].vec4f;
+    const SR_Vec4f aiV2 =
+        pipeline->pVertexStageOutput[(ATTR_COUNT * 2) + i].vec4f;
 
-	attribs[i] = (SR_Vecf)(SR_Vec4f){
-	    .x = fpos->z*(baryc[0]*(aiV0.x/pos[0].z) + baryc[1]*(aiV1.x/pos[1].z) + baryc[2]*(aiV2.x/pos[2].z)),
-	    .y = fpos->z*(baryc[0]*(aiV0.y/pos[0].z) + baryc[1]*(aiV1.y/pos[1].z) + baryc[2]*(aiV2.y/pos[2].z)),
-	    .z = fpos->z*(baryc[0]*(aiV0.z/pos[0].z) + baryc[1]*(aiV1.z/pos[1].z) + baryc[2]*(aiV2.z/pos[2].z)),
-	    .w = fpos->z*(baryc[0]*(aiV0.w/pos[0].z) + baryc[1]*(aiV1.w/pos[1].z) + baryc[2]*(aiV2.w/pos[2].z)),
-	};
-    }
+    attribs[i] = (SR_Vecf)(SR_Vec4f){
+        .x = fpos->z *
+             (baryc[0] * (aiV0.x / pos[0].z) + baryc[1] * (aiV1.x / pos[1].z) +
+              baryc[2] * (aiV2.x / pos[2].z)),
+        .y = fpos->z *
+             (baryc[0] * (aiV0.y / pos[0].z) + baryc[1] * (aiV1.y / pos[1].z) +
+              baryc[2] * (aiV2.y / pos[2].z)),
+        .z = fpos->z *
+             (baryc[0] * (aiV0.z / pos[0].z) + baryc[1] * (aiV1.z / pos[1].z) +
+              baryc[2] * (aiV2.z / pos[2].z)),
+        .w = fpos->z *
+             (baryc[0] * (aiV0.w / pos[0].z) + baryc[1] * (aiV1.w / pos[1].z) +
+              baryc[2] * (aiV2.w / pos[2].z)),
+    };
+  }
 }
 
 /* ~/Static functions/~ */
 
 
-void SR_WritePixel(SR_FrameBuffer *buffer, const SR_VecScreen *pos, const void* value)
-/* Writes the desired color values in the (x, y) coordinates of the color buffer. */
+void SR_WritePixel(SR_FrameBuffer *buffer, const SR_VecScreen *pos,
+                   const void *value)
+    /* Writes the desired color values in the (x, y) coordinates
+     * of the color buffer. */
 {   
     float depth;
     SR_TexBufferRead(&buffer->depth, &depth, pos->x, pos->y);
@@ -37,7 +53,8 @@ void SR_WritePixel(SR_FrameBuffer *buffer, const SR_VecScreen *pos, const void* 
     }
 }
 
-void SR_WriteLine(SR_FrameBuffer *buffer, const SR_VecScreen *pos, const SR_Pipeline* pipeline)
+void SR_WriteLine(SR_FrameBuffer *buffer, const SR_VecScreen *pos,
+		  const SR_Pipeline* pipeline)
 /* Bresenheim Midpoint Line Rasterization. */
 {
 /*
@@ -86,8 +103,9 @@ void SR_WriteLine(SR_FrameBuffer *buffer, const SR_VecScreen *pos, const SR_Pipe
 */
 }
 
-void SR_WriteTriangle(SR_FrameBuffer *buffer, const SR_VecScreen *pos, const SR_Pipeline* pipeline)
-/* Triangle rastierization using the pineda algorithm. */
+void SR_WriteTriangle(SR_FrameBuffer *buffer, const SR_VecScreen *pos,
+                      const SR_Pipeline *pipeline)
+    /* Triangle rastierization using the pineda algorithm. */
 {
     const int WIDTH = (int)buffer->color.width-1;
     const int HEIGHT = (int)buffer->color.height-1;
@@ -130,12 +148,13 @@ void SR_WriteTriangle(SR_FrameBuffer *buffer, const SR_VecScreen *pos, const SR_
 		baryc[2] = (float)e01/area;
 
 		// Z-Interpolation
-		fpos.z = 1.0 / (baryc[0]/pos[0].z+baryc[1]/pos[1].z+baryc[2]/pos[2].z);
+		fpos.z = baryc[0]/pos[0].z+baryc[1]/pos[1].z+baryc[2]/pos[2].z;
+		fpos.z = 1.0 / fpos.z;
 		
 		// Attribute interpolation
-		mixAttribsTriangle(attribs, &fpos, pos, baryc, pipeline);
-		
-		// Fragment shading
+                mixAttrTriangle(attribs, &fpos, pos, baryc, pipeline);
+
+                // Fragment shading
 		SR_Vec4f color = (SR_Vec4f){0.0, 0.0, 0.0, 0.0};
 		(*(pipeline->fragmentShader))(ATTRIB_COUNT, attribs, &color);
 		uint8_t texel[] = {color.x*255,

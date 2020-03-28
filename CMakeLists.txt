@@ -6,7 +6,7 @@ cmake_minimum_required (VERSION 3.15)
 # General Project Settings
 project (SoftwareRasterizationEngine C)
 set (EXECUTABLE_NAME "rtg")
-set(CMAKE_BUILD_TYPE Release)
+set(CMAKE_BUILD_TYPE Debug)
 
 
 # External dependencies

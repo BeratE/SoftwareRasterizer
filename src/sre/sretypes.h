@@ -5,6 +5,10 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+typedef enum {
+    FALSE, TRUE
+} SR_Boolean;
+
 // Texturebuffer
 typedef struct {
     size_t width;   

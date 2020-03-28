@@ -9,13 +9,12 @@ set (SRE_FILES
   ${SRE_DIR}/sre.h
   ${SRE_DIR}/sredefs.h
   ${SRE_DIR}/sretypes.h
-  ${SRE_DIR}/srmeshtypes.h
-  ${SRE_DIR}/srmesh.h
+  ${SRE_DIR}/srmesh/srmesh.h
   # Source
   ${SRE_DIR}/sre.c
   ${SRE_DIR}/sretexbuffer.c
   ${SRE_DIR}/srerasterizer.c
-  ${SRE_DIR}/srmesh.c)
+  ${SRE_DIR}/srmesh/srmesh.c)
 
 
 ### Application files
@@ -33,7 +32,5 @@ add_executable (${EXECUTABLE_NAME} ${APP_FILES})
 target_link_libraries(${EXECUTABLE_NAME} ${LIBS} ${SRE_TGT})
 
 # Unit testing
-if (CMAKE_BUILD_TYPE EQUAL Debug)
-  enable_testing()
-  add_subdirectory(test)
-endif()
+enable_testing()
+add_subdirectory(test)

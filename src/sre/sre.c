@@ -28,18 +28,20 @@ static SR_VertexArray *__sr_pCurrVAO; // Pointer to currently bound VAO
 /* Static functions */
 
 static inline void collectVertexAttribs(SR_Vecf *attribs, size_t elementIndex)
+    /* Collect Vertex Attributes from the currently bound buffer,
+     * starting at the given element index. */
 {
     for (size_t ai = 0; ai < __sr_pCurrVAO->attributesCount; ai++) {
 	const SR_VertexAttribute va = __sr_pCurrVAO->attributes[ai];
 	// Pointer to vertex attribute location
-	const uint8_t *pVertexData = ((uint8_t *)__sr_pCurrVAO->vertexBuffer) +
-	    va.offset + (elementIndex * va.stride);
+	const uint8_t *pVertexData = ((uint8_t *)__sr_pCurrVAO->vertexBuffer)
+	    + va.offset + (elementIndex * va.stride);
 
 	switch (va.count) {
-	case 4: attribs[ai].vec4f.w = *(((float *)pVertexData) + 3); /* FALLTHRU */
-	case 3: attribs[ai].vec3f.z = *(((float *)pVertexData) + 2); /* FALLTHRU */
-	case 2: attribs[ai].vec2f.y = *(((float *)pVertexData) + 1); /* FALLTHRU */
-	case 1: attribs[ai].vec1f.x = *(((float *)pVertexData) + 0);
+	case 4: attribs[ai].vec4f.w = *(((float*)pVertexData)+3); /* FALLTHRU */
+	case 3: attribs[ai].vec3f.z = *(((float*)pVertexData)+2); /* FALLTHRU */
+	case 2: attribs[ai].vec2f.y = *(((float*)pVertexData)+1); /* FALLTHRU */
+	case 1: attribs[ai].vec1f.x = *(((float*)pVertexData)+0);
 	    break;
 	}
     }
@@ -61,7 +63,7 @@ static inline void perspectiveDivide(SR_Vec4f *p)
  */
 
 void SR_Init()
-/* Initialize the software rasterization engine. */
+    /* Initialize the software rasterization engine. */
 {
     SR_SetViewPort(0, 0);
 
@@ -77,7 +79,7 @@ void SR_Init()
 }
 
 void SR_Shutdown()
-/* Clean up resources. */
+    /* Clean up resources. */
 {
     // Free Framebuffer
     SR_TexBufferFree(&__sr_framebuffer.color);
@@ -108,13 +110,13 @@ void SR_Shutdown()
  */
 
 SR_FrameBuffer SR_GetFrameBuffer()
-/* Temporary solution. */
+    /* Temporary solution. */
 {
   return __sr_framebuffer;
 }
 
 void SR_SetViewPort(int w, int h)
-/* Set global viewport state parameters. */
+    /* Set global viewport state parameters. */
 {
   SR_TexBufferFree(&__sr_framebuffer.color);
   SR_TexBufferFree(&__sr_framebuffer.depth);
@@ -123,7 +125,7 @@ void SR_SetViewPort(int w, int h)
 }
 
 void SR_Clear(enum SR_RENDER_TARGET_BIT buffermask)
-/* Clear the target buffer with zero-values. */
+    /* Clear the target buffer with zero-values. */
 {
     if (buffermask & SR_RTB_COLOR_BUFFER_BIT) {
 	int clearVal = 0;
@@ -141,7 +143,7 @@ void SR_Clear(enum SR_RENDER_TARGET_BIT buffermask)
  */
 
 size_t SR_GenVertexArray()
-/* Generate a new vertex array object and return the object handle. */
+    /* Generate a new vertex array object and return the object handle. */
 {
     size_t returnindex;
     if (__sr_listHead == NULL) {
@@ -177,7 +179,7 @@ size_t SR_GenVertexArray()
 }
 
 void SR_DestroyVertexArray(size_t handle)
-/* Destroy the vertex shader indexed by the given handle. */
+    /* Destroy the vertex shader indexed by the given handle.*/
 {
     if (__sr_listHead == NULL || handle > __sr_nextListIndex)
 	return;
@@ -200,7 +202,8 @@ void SR_DestroyVertexArray(size_t handle)
 }
 
 void SR_BindVertexArray(size_t handle)
-/* Set the vertex array object identified by handle as the currently bound vao. */
+    /* Set the vertex array object identified by handle
+     * as the currently bound vao. */
 {
     struct listVAO *listp = __sr_listHead;
     while ((listp != NULL) && (listp->index != handle) && (listp = listp->pNext));
@@ -211,8 +214,8 @@ void SR_BindVertexArray(size_t handle)
 	__sr_pCurrVAO = NULL;
 }
 
-void SR_SetBufferData(enum SR_BUFFER_TYPE target, void* data, size_t size)
-/* Set the vertex buffer data of the currently bound vao. */
+void SR_SetBufferData(enum SR_BUFFER_TYPE target, void *data, size_t size)
+    /* Set the vertex buffer data of the currently bound vao. */
 {
     if (__sr_pCurrVAO == NULL)
 	return;
@@ -241,7 +244,7 @@ void SR_SetBufferData(enum SR_BUFFER_TYPE target, void* data, size_t size)
  */
 
 void SR_SetVertexAttributeCount(size_t count)
-/* Set the number of vertex attributes passed in the currently bound vao. */
+    /* Set the number of vertex attributes passed in the currently bound vao. */
 {
     if (__sr_pCurrVAO == NULL)
 	return;
@@ -252,8 +255,10 @@ void SR_SetVertexAttributeCount(size_t count)
     __sr_pCurrVAO->attributesCount = count;
 }
 
-void SR_SetVertexAttribute(size_t index, size_t count, size_t stride, size_t offset)
-/* Set the pointer to a vertex attribute in the vertex buffer of the currently bound vao. */
+void SR_SetVertexAttribute(size_t index, size_t count,
+			   size_t stride, size_t offset)
+    /* Set the pointer to a vertex attribute in the vertex buffer of the
+    currently bound vao. */
 {
     if (__sr_pCurrVAO == NULL || index >= __sr_pCurrVAO->attributesCount)
 	return;
@@ -268,7 +273,7 @@ void SR_SetVertexAttribute(size_t index, size_t count, size_t stride, size_t off
  */
 
 void SR_BindShader(enum SR_SHADER_TYPE shader_type, SR_ShaderCB shader)
-/* Set the callback to the shader function of the given type. */
+    /* Set the callback to the shader function of the given type. */
 {
     switch (shader_type) {
     case SR_ST_VERTEX_SHADER:
@@ -281,7 +286,7 @@ void SR_BindShader(enum SR_SHADER_TYPE shader_type, SR_ShaderCB shader)
 }
 
 void SR_SetVertexStageOutputCount(size_t count)
-/* Set the number of output values of the vertex shader stage. */
+    /* Set the number of output values of the vertex shader stage. */
 {
     if (__sr_pipeline.currVertexStageOutput != NULL)
 	free(__sr_pipeline.currVertexStageOutput);
@@ -290,8 +295,8 @@ void SR_SetVertexStageOutputCount(size_t count)
     __sr_pipeline.currVertexStageOutput = malloc(count * sizeof(SR_Vecf));
 }
 
-void SR_SetVertexStageOutput(size_t index, SR_Vecf* value)
-/* Set the value of the vertex stage output at the given index. */
+void SR_SetVertexStageOutput(size_t index, SR_Vecf *value)
+    /* Set the value of the vertex stage output at the given index. */
 {
     if (__sr_pipeline.currVertexStageOutput == NULL)
 	return;
@@ -299,8 +304,9 @@ void SR_SetVertexStageOutput(size_t index, SR_Vecf* value)
     memcpy(&__sr_pipeline.currVertexStageOutput[index], value, sizeof(*value));
 }
 
-void SR_DrawArray(enum SR_PRIMITIVE_TYPE prim_type, size_t count, size_t startindex)
-/* Initiate the pipeline. */
+void SR_DrawArray(enum SR_PRIMITIVE_TYPE prim_type,
+		  size_t count, size_t startindex)
+    /* Initiate the pipeline. */
 {
     if (__sr_pCurrVAO == NULL || __sr_pCurrVAO->indexBuffer == NULL ||
 	__sr_pCurrVAO->vertexBuffer == NULL || __sr_pipeline.vertexShader == NULL)

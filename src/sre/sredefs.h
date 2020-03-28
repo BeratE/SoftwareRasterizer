@@ -13,6 +13,7 @@
 /* ~/Macros/~ */
 
 // Common Constants and Enumerations
+
 enum SR_PRIMITIVE_TYPE {
     SR_PT_POINTS = 1,
     SR_PT_LINES,
@@ -51,6 +52,7 @@ enum SR_TEXTURE_FORMAT_TYPE {
 enum SR_TEXTURE_FORMAT {
     /* Bytecoded Format  = [ Type | N Comp. | 0 | Num Bytes] */
     // Composite Integer Types - 0
+    SR_TEX_FORMAT_NULL   = 0,
     SR_TEX_FORMAT_R8     = SR_TF_TYPE_UINT | (1 << 4) | sizeof(uint8_t),
     SR_TEX_FORMAT_RG8    = SR_TF_TYPE_UINT | (2 << 4) | sizeof(uint8_t),
     SR_TEX_FORMAT_RGB8   = SR_TF_TYPE_UINT | (3 << 4) | sizeof(uint8_t),

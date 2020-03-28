@@ -16,8 +16,9 @@ SR_TexBuffer2D SR_TexBufferCreate(size_t width, size_t height, uint16_t format)
     return b;
 }
 
-SR_TexBuffer2D SR_TexBufferCopy(const SR_TexBuffer2D* buffer)
-/* Copy the contents of the given texture buffer into a newly allocated buffer. */
+SR_TexBuffer2D SR_TexBufferCopy(const SR_TexBuffer2D *buffer)
+    /* Copy the contents of the given texture buffer into
+     * a newly allocated buffer. */
 {
     SR_TexBuffer2D tex = SR_TexBufferCreate(buffer->width, buffer->height,
 					    buffer->format);
@@ -25,16 +26,18 @@ SR_TexBuffer2D SR_TexBufferCopy(const SR_TexBuffer2D* buffer)
     return tex;
 }
 
-void SR_TexBufferRead(const SR_TexBuffer2D *buffer, void* outValue, size_t x, size_t y)
-/* Read the value at psoition (x,y) into the out value. */
+void SR_TexBufferRead(const SR_TexBuffer2D *buffer, void *outValue,
+		      size_t x, size_t y)
+    /* Read the value at psoition (x,y) into the out value.*/
 {
     const size_t fsize = SR_TexBufferFormatSize(buffer);
     const size_t offset = (y * buffer->width + x) * fsize;
     memcpy(outValue, &buffer->values[offset], fsize);
 }
 
-void SR_TexBufferSample(const SR_TexBuffer2D *buffer, void* outValue, float x, float y)
-/* Sample position with bilinear interpolation. */
+void SR_TexBufferSample(const SR_TexBuffer2D *buffer, void *outValue,
+			float x, float y)
+    /* Sample position with bilinear interpolation.*/
 {
     // Sample positions
     int x0 = (size_t)x;
@@ -94,16 +97,18 @@ void SR_TexBufferSample(const SR_TexBuffer2D *buffer, void* outValue, float x, f
     free(samples);
 }
 
-void SR_TexBufferWrite(SR_TexBuffer2D *buffer, const void *value, size_t x, size_t y)
-/* Write the given value (of format size) into the texture buffer at position (x,y). */
+void SR_TexBufferWrite(SR_TexBuffer2D *buffer, const void *value, size_t x,
+                       size_t y)
+    /* Write the given value (of format size) into the texture buffer
+     * at position (x,y). */
 {
     const size_t fsize = SR_TexBufferFormatSize(buffer);
     const size_t offset = (y * buffer->width + x) * fsize;
     memcpy(&buffer->values[offset], value, fsize);
 }
 
-void SR_TexBufferClear(SR_TexBuffer2D *buffer, const void* value)
-/* Clears the elements of the color buffer array with the given value. */
+void SR_TexBufferClear(SR_TexBuffer2D *buffer, const void *value)
+    /* Clears the elements of the color buffer array with the given value. */
 {
     const size_t fsize = SR_TexBufferFormatSize(buffer);
     for (size_t i = 0; i < buffer->width*buffer->height; i++) {
@@ -112,7 +117,7 @@ void SR_TexBufferClear(SR_TexBuffer2D *buffer, const void* value)
 }
 
 void SR_TexBufferFree(SR_TexBuffer2D *buffer)
-/* Free allocated memory for the texture buffer. */
+    /* Free allocated memory for the texture buffer. */
 {
     if (buffer->values != NULL) {
 	free(buffer->values);
@@ -121,31 +126,34 @@ void SR_TexBufferFree(SR_TexBuffer2D *buffer)
 }
 
 size_t SR_TexBufferSize(const SR_TexBuffer2D *buffer)
-/* Return the size of the texture buffer in bytes. */
+    /* Return the size of the texture buffer in bytes. */
 {
     return buffer->width*buffer->height*SR_TexBufferFormatSize(buffer);
 }
 
+
+// Texture Format
+
 size_t SR_TexBufferFormatSize(const SR_TexBuffer2D *buffer)
-/* Return the size of the textures format in bytes. */
+    /* Return the byte size of the textures format. */
 {
     return SR_TexBufferFormatNBytes(buffer)*SR_TexBufferFormatNComps(buffer);
 }
 
 uint16_t SR_TexBufferFormatType(const SR_TexBuffer2D *buffer)
-/* Return the texture buffer format type. */
+    /* Return the texture buffer format type.*/
 {
     return (buffer->format & SR_TF_MASK_TYPE);
 }
 
 uint16_t SR_TexBufferFormatNComps(const SR_TexBuffer2D *buffer)
-/* Return the number of components of the texture buffer formats. */
+    /* Return the number of components of the texture buffer formats. */
 {
     return (buffer->format & SR_TF_MASK_NCOMPS) >> 4;
 }
 
 uint16_t SR_TexBufferFormatNBytes(const SR_TexBuffer2D *buffer)
-/* Return the number of bytes per components of the texture buffer format. */
+    /* Return the number of bytes per components of the texture buffer format. */
 {
     return (buffer->format & SR_TF_MASK_NBYTES);
 }
