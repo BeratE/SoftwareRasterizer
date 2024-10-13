@@ -9,6 +9,10 @@ install_manifest.txt
 compile_commands.json
 CTestTestfile.cmake
 
+#VSCode
+.vscode/
+*.vcxproj*
+
 # Emacs
 *~
 \#*\#
@@ -24,4 +28,4 @@ tramp
 build
 bin
 lib
-stb_image.h
+include/config.h
