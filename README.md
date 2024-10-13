@@ -1,8 +1,6 @@
 # C Real-Time Software Rasterization Engine
 
 ![Cubes](docs/rtg.png)
-![Barrel](docs/barrel.png)
-![RedMan](docs/man.png)
 
 A small project for the sole purpose of learning the basics of computer graphics and bare bones C programming.
 
@@ -37,8 +35,14 @@ I greatly appreciate any critique and pointers concerning programming style and 
 * Fix issues with Bresenheim Line Rendering, currently not used
 
 ## Libraries
-* SDL2, hosting display output and processing events
-* stb_images.g, load image data into textures
+#### [SDL2](https://www.libsdl.org/), 
+Used for hosting display output and processing events. Follow the installation guideline for your platform.
+
+#### [stb_images.h](https://github.com/nothings/stb/blob/master/stb_image.h)
+ A single header image library used to load image data into textures. 
+ File already included in the `inc` directory.
+
+#### [SMOL](https://github.com/BeratE/smol)
 
 ## Licence
 This software is published under the GNU GPLv3.
